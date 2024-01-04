@@ -22,8 +22,8 @@
 #include "img_mgmt/img_mgmt.h"
 
 /* Global variables*/
-const struct device *gpio_0_dev;
-const struct device *gpio_1_dev;
+const struct device *gpio_0_dev = DEVICE_DT_GET(DT_NODELABEL(gpio0));
+const struct device *gpio_1_dev = DEVICE_DT_GET(DT_NODELABEL(gpio1));
 
 //#include "gpio_macros.cpp"
 //#include "led_testing.cpp" //pwm and LED alternating routines
@@ -134,7 +134,7 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *user
 static int init_uart(void);
 
 /* Global variables */
-const struct device *uart_dev; /** UART device. For communication with RP2040 */
+const struct device *uart_dev = DEVICE_DT_GET(DT_NODELABEL(uart3)); /** UART device. For communication with RP2040 */
 static uint8_t recvBuffer[CONFIG_UART_RX_TX_BUF_SZ]; ///< receive buffer. Contains data received from RP2040
 #endif
 
@@ -253,13 +253,12 @@ static int setGPIO(int pin, int state) {
 
 static int gpio_init(void) {
     
-    gpio_0_dev = device_get_binding("GPIO_0");
-	if (gpio_0_dev == NULL) {
+    // gpio_0_dev = device_get_binding("GPIO_0");
+    if (!device_is_ready(gpio_0_dev)){
 		LOG_ERR("***ERROR: GPIO_0 device binding!");
         return -1;
 	}  
-    gpio_1_dev = device_get_binding("GPIO_1");
-	if (gpio_1_dev == NULL) {
+    if (!device_is_ready(gpio_1_dev)){
 		LOG_ERR("***ERROR: GPIO_1 device binding!");
         return -1;
 	}        
@@ -661,9 +660,8 @@ static void setupPeripherals() {
 static int init_uart(void){
     int ret = 0;
 
-    uart_dev =  device_get_binding(DT_LABEL(DT_NODELABEL(uart3)));
-	if (uart_dev == NULL) {
-		LOG_ERR("Could not find  %s!\n\r",DT_LABEL(DT_NODELABEL(uart3)));
+	if (!device_is_ready(uart_dev)) {
+		LOG_ERR("Could not find  %s!\n\r", DT_LABEL(DT_NODELABEL(uart3)));
         return -1;		
 	}
 
@@ -735,7 +733,7 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *user
 
 /**    MAIN    */
 
-void main(void)
+int main(void)
 {
     LOG_INF("Entry point");
     // LOG_ERR("This is a error message!");
@@ -760,23 +758,24 @@ void main(void)
     // //LOG_INF("1...");
     // k_msleep(1000);
     
-    // while(1){
-    //     #if 0        
-    //         bool drdy = getGPIO(DATA_READY_GPIO);
+    while(1){
+        #if 0        
+            bool drdy = getGPIO(DATA_READY_GPIO);
 
-    //         if(drdy) {
-    //             adc.readAllChannels(adcRawData);
+            if(drdy) {
+                adc.readAllChannels(adcRawData);
 
-    //             sampleNum++;
-    //             //LOG_INF("Sample: %d", sampleNum);
-    //             if (sampleNum == 100){
-    //                 LOG_INF("ADC[0]: %d", ((adcRawData[3] << 16) | (adcRawData[4] << 8) | adcRawData[5]));
-    //             }
-    //         }      
-    //     #endif
-    //     LOG_INF("Hi");
-    //     k_msleep(10000);
-    // }
+                sampleNum++;
+                //LOG_INF("Sample: %d", sampleNum);
+                if (sampleNum == 100){
+                    LOG_INF("ADC[0]: %d", ((adcRawData[3] << 16) | (adcRawData[4] << 8) | adcRawData[5]));
+                }
+            }      
+        #endif
+        LOG_INF("Hi");
+        k_msleep(1000);
+    }
+    return 0;
 }
 
 

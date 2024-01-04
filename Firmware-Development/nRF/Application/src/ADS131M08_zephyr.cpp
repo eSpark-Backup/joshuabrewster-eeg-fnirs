@@ -57,21 +57,21 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
     // Try to bind chip select device
 
     if(cs_pin >= 100) {
-        csConfig.gpio_dev = device_get_binding("GPIO_1");
-        csConfig.gpio_pin = cs_pin - 100;
+        csConfig.gpio.port = device_get_binding("GPIO_1");
+        csConfig.gpio.pin = cs_pin - 100;
     } else if(cs_pin >= 32) {
-        csConfig.gpio_dev = device_get_binding("GPIO_1");
-        csConfig.gpio_pin = cs_pin - 32;
+        csConfig.gpio.port = device_get_binding("GPIO_1");
+        csConfig.gpio.pin = cs_pin - 32;
     } else {
-        csConfig.gpio_dev = device_get_binding("GPIO_0");
-        csConfig.gpio_pin = cs_pin;
+        csConfig.gpio.port = device_get_binding("GPIO_0");
+        csConfig.gpio.pin = cs_pin;
     }
 
     csConfig.delay = 0;
-    csConfig.gpio_dt_flags = GPIO_ACTIVE_LOW;
+    csConfig.gpio.dt_flags = GPIO_ACTIVE_LOW;
 
     // Bind SPI device only if chip select device successfully binded
-    if (csConfig.gpio_dev)
+    if (csConfig.gpio.port)
     {
         spiConfig.frequency = spi_frequency;
         spiConfig.operation = SPI_MODE_CPHA | SPI_WORD_SET(8); //< Default Word Size of ADS131M08 is 24
