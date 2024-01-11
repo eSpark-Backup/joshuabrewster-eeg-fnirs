@@ -749,7 +749,7 @@ int main(void)
 
     setupPeripherals(); //will setup interrupts etc
 
-    Bluetooth::SetupBLE();
+    // Bluetooth::SetupBLE();
     
     //LOG_INF("Starting in 3...");
     // k_msleep(1000);
@@ -772,7 +772,8 @@ int main(void)
                 }
             }      
         #endif
-        LOG_INF("Hi");
+        printk("Helloooooooooooooo\n");
+        LOG_ERR("Hi");
         k_msleep(1000);
     }
     return 0;

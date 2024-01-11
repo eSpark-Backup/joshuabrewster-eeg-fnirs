@@ -27,13 +27,13 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
 /* Configure DRDY and SYNC/RESET GPIOs */
     uint8_t SYNCRST;
     if(sync_rst_pin >= 100) {
-        gpioDevice = device_get_binding("GPIO_1");
+        gpioDevice = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         SYNCRST = sync_rst_pin - 100;
     } else if(sync_rst_pin >= 32) {
-        gpioDevice = device_get_binding("GPIO_1");
+        gpioDevice = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         SYNCRST = sync_rst_pin - 32;
     } else {
-        gpioDevice = device_get_binding("GPIO_0");
+        gpioDevice = DEVICE_DT_GET(DT_NODELABEL(gpio0));
         SYNCRST = sync_rst_pin;
     }
     if(gpioDevice == nullptr){
@@ -57,13 +57,13 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
     // Try to bind chip select device
 
     if(cs_pin >= 100) {
-        csConfig.gpio.port = device_get_binding("GPIO_1");
+        csConfig.gpio.port = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         csConfig.gpio.pin = cs_pin - 100;
     } else if(cs_pin >= 32) {
-        csConfig.gpio.port = device_get_binding("GPIO_1");
+        csConfig.gpio.port = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         csConfig.gpio.pin = cs_pin - 32;
     } else {
-        csConfig.gpio.port = device_get_binding("GPIO_0");
+        csConfig.gpio.port = DEVICE_DT_GET(DT_NODELABEL(gpio0));
         csConfig.gpio.pin = cs_pin;
     }
 
@@ -78,7 +78,7 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
         spiConfig.slave = 0;
         spiConfig.cs = &csConfig;
 
-        spiDevice = device_get_binding("SPI_0");
+        spiDevice = DEVICE_DT_GET(DT_NODELABEL(spi0));
     }
 
     if (spiDevice == nullptr)
@@ -241,7 +241,7 @@ bool ADS131M08::writeReg(uint8_t reg, uint16_t data) {
     k_msleep(10);
 /* Read Response */
     writeResponse = spiResponseFrame(3);
-    //LOG_INF("WriteReg response: 0x%X", writeResponse);
+    LOG_INF("WriteReg response: 0x%X", writeResponse);
 
     if ( ( (0x04<<12) + (reg<<7) ) == writeResponse) {
         return true;
