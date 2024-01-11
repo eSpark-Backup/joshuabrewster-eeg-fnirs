@@ -1,6 +1,6 @@
 if (TARGET tinyusb_device)
     add_executable(main
-            main.c
+            main.cpp
             )
 
     # pull in common dependencies
