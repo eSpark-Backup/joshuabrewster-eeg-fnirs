@@ -1,6 +1,8 @@
 if (TARGET tinyusb_device)
     add_executable(main
             main.cpp
+            pwmcontroller.cpp
+            uartcontroller.cpp
             )
 
     # pull in common dependencies
