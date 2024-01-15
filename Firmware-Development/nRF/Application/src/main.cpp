@@ -22,8 +22,8 @@
 #include "img_mgmt/img_mgmt.h"
 
 /* Global variables*/
-const struct device *gpio_0_dev = DEVICE_DT_GET(DT_NODELABEL(gpio0));
-const struct device *gpio_1_dev = DEVICE_DT_GET(DT_NODELABEL(gpio1));
+const struct device *gpio_0_dev;
+const struct device *gpio_1_dev;
 
 //#include "gpio_macros.cpp"
 //#include "led_testing.cpp" //pwm and LED alternating routines
@@ -134,7 +134,7 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *user
 static int init_uart(void);
 
 /* Global variables */
-const struct device *uart_dev = DEVICE_DT_GET(DT_NODELABEL(uart3)); /** UART device. For communication with RP2040 */
+const struct device *uart_dev; /** UART device. For communication with RP2040 */
 static uint8_t recvBuffer[CONFIG_UART_RX_TX_BUF_SZ]; ///< receive buffer. Contains data received from RP2040
 #endif
 
@@ -253,12 +253,13 @@ static int setGPIO(int pin, int state) {
 
 static int gpio_init(void) {
     
-    // gpio_0_dev = device_get_binding("GPIO_0");
-    if (!device_is_ready(gpio_0_dev)){
+    gpio_0_dev = device_get_binding("GPIO_0");
+	if (gpio_0_dev == NULL) {
 		LOG_ERR("***ERROR: GPIO_0 device binding!");
         return -1;
 	}  
-    if (!device_is_ready(gpio_1_dev)){
+    gpio_1_dev = device_get_binding("GPIO_1");
+	if (gpio_1_dev == NULL) {
 		LOG_ERR("***ERROR: GPIO_1 device binding!");
         return -1;
 	}        
@@ -341,15 +342,15 @@ static int init_ads131_gpio_int(void){
     } 
 
 //ADS131M08_1
-    ret += configureGPIO(DATA_READY_1_GPIO, GPIO_INPUT | GPIO_PULL_UP);
-    ret += configureInterrupt(DATA_READY_1_GPIO, GPIO_INT_EDGE_FALLING);
-    ret += addGPIOCallback(DATA_READY_1_GPIO, &ads131m08_1_callback, &ads131m08_1_drdy_cb);
+    // ret += configureGPIO(DATA_READY_1_GPIO, GPIO_INPUT | GPIO_PULL_UP);
+    // ret += configureInterrupt(DATA_READY_1_GPIO, GPIO_INT_EDGE_FALLING);
+    // ret += addGPIOCallback(DATA_READY_1_GPIO, &ads131m08_1_callback, &ads131m08_1_drdy_cb);
 
-    if (ret != 0){
-        LOG_ERR("***ERROR: GPIO initialization\n");
-    } else {
-        LOG_INF("Data Ready 1 Int'd!");
-    } 
+    // if (ret != 0){
+    //     LOG_ERR("***ERROR: GPIO initialization\n");
+    // } else {
+    //     LOG_INF("Data Ready 1 Int'd!");
+    // } 
 
     return ret;
 }
@@ -548,7 +549,7 @@ static void setupPeripherals() {
 
     #if CONFIG_USE_ADS131M08    
         k_work_init(&interrupt_work_item, interrupt_workQueue_handler);
-        k_work_init(&ads131m08_1_interrupt_work_item, ads131m08_1_interrupt_workQueue_handler);
+        // k_work_init(&ads131m08_1_interrupt_work_item, ads131m08_1_interrupt_workQueue_handler);
     #endif
 
     #if CONFIG_USE_MAX30102
@@ -574,7 +575,7 @@ static void setupPeripherals() {
 
     #if CONFIG_USE_ADS131M08    
         adc.init(ADS_CS, DATA_READY_GPIO, ADS_RESET, 8000000); // cs_pin, drdy_pin, sync_rst_pin, 8MHz SPI bus
-        adc_1.init(ADS_1_CS, DATA_READY_1_GPIO, ADS_1_RESET, 8000000); // cs_pin, drdy_pin, sync_rst_pin, 8MHz SPI bus
+        // adc_1.init(ADS_1_CS, DATA_READY_1_GPIO, ADS_1_RESET, 8000000); // cs_pin, drdy_pin, sync_rst_pin, 8MHz SPI bus
     #endif
 
     #if CONFIG_USE_MAX30102
@@ -640,7 +641,7 @@ static void setupPeripherals() {
 
     #if CONFIG_USE_ADS131M08
         setupadc(&adc);
-        setupadc(&adc_1);
+        // setupadc(&adc_1);
         init_ads131_gpio_int();
     #endif
 
@@ -660,24 +661,32 @@ static void setupPeripherals() {
 static int init_uart(void){
     int ret = 0;
 
-	if (!device_is_ready(uart_dev)) {
-		LOG_ERR("Could not find  %s!\n\r", DT_LABEL(DT_NODELABEL(uart3)));
+    uart_dev =  device_get_binding(DT_LABEL(DT_NODELABEL(uart3)));
+	if (uart_dev == NULL) {
+		LOG_ERR("Could not find  %s!\n\r",DT_LABEL(DT_NODELABEL(uart3)));
         return -1;		
 	}
 
-    ret = uart_callback_set(uart_dev, &uart_cb, NULL);
-    if (ret != 0) {
-		LOG_ERR("uart_callback_set: %d", ret);
-        return ret;
-	}
+    // ret = uart_callback_set(uart_dev, &uart_cb, NULL);
+    // if (ret != 0) {
+	// 	LOG_ERR("uart_callback_set: %d", ret);
+    //     return ret;
+	// }
    
-    ret = uart_rx_enable(uart_dev, recvBuffer, sizeof(recvBuffer), CONFIG_UART_RX_TOUT_US);
-	if (ret != 0) {
-		LOG_ERR("uart_rx_enable");
-        return ret;
-	}
+    // ret = uart_rx_enable(uart_dev, recvBuffer, sizeof(recvBuffer), CONFIG_UART_RX_TOUT_US);
+	// if (ret != 0) {
+	// 	LOG_ERR("uart_rx_enable");
+    //     return ret;
+	// }
 
     return ret;
+}
+
+void uart_poll_buffer(const struct device *dev, const uint8_t *data, size_t size)
+{
+    for (size_t i = 0; i < size; i++) {
+        uart_poll_out(dev, data[i]);
+    }
 }
 
 static void uart_cb(const struct device *dev, struct uart_event *evt, void *user_data)
@@ -726,14 +735,32 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *user
 
 
 
+// Function to configure ADS131_CLOCK register with desired SPS
+int configureSPS(ADS131M08* adc, uint16_t osr) {
+    // Build the configuration value for the ADS131_CLOCK register
+    uint16_t configValue = 0b1111111100000011 | (osr<<2);
 
+    // Write the configuration to the ADS131_CLOCK register
+    if (adc->writeReg(ADS131_CLOCK, configValue)) {
+        //LOG_INF("ADS131_CLOCK register successfully configured");
+        return 0;  // Success
+    } else {
+        LOG_ERR("***ERROR: Writing ADS131_CLOCK register.");
+        return 1;  // Error
+    }
+}
+
+#define SPS_250_OSR 0b111
+#define SPS_500_OSR 0b110
+#define SPS_1000_OSR 0b101
+#define SPS_2000_OSR 0b100
 
 
 
 
 /**    MAIN    */
 
-int main(void)
+void main(void)
 {
     LOG_INF("Entry point");
     // LOG_ERR("This is a error message!");
@@ -749,7 +776,7 @@ int main(void)
 
     setupPeripherals(); //will setup interrupts etc
 
-    // Bluetooth::SetupBLE();
+    Bluetooth::SetupBLE();
     
     //LOG_INF("Starting in 3...");
     // k_msleep(1000);
@@ -758,25 +785,54 @@ int main(void)
     // //LOG_INF("1...");
     // k_msleep(1000);
     
-    while(1){
-        #if 0        
-            bool drdy = getGPIO(DATA_READY_GPIO);
+    // while(1){
+    //     #if 0        
+    //         bool drdy = getGPIO(DATA_READY_GPIO);
 
-            if(drdy) {
-                adc.readAllChannels(adcRawData);
+    //         if(drdy) {
+    //             adc.readAllChannels(adcRawData);
 
-                sampleNum++;
-                //LOG_INF("Sample: %d", sampleNum);
-                if (sampleNum == 100){
-                    LOG_INF("ADC[0]: %d", ((adcRawData[3] << 16) | (adcRawData[4] << 8) | adcRawData[5]));
-                }
-            }      
-        #endif
-        printk("Helloooooooooooooo\n");
-        LOG_ERR("Hi");
-        k_msleep(1000);
+    //             sampleNum++;
+    //             //LOG_INF("Sample: %d", sampleNum);
+    //             if (sampleNum == 100){
+    //                 LOG_INF("ADC[0]: %d", ((adcRawData[3] << 16) | (adcRawData[4] << 8) | adcRawData[5]));
+    //             }
+    //         }      
+    //     #endif
+    //     LOG_INF("Hi");
+    //     k_msleep(10000);
+    // }
+
+    // configureSPS(&adc, SPS_1000_OSR);
+    // uint8_t command[] = "ledNum=1,  Config=C\r\nledNum=2,  Config=C\r\n";
+    // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+
+    while (1)
+    {      
+        configureSPS(&adc, SPS_250_OSR);
+        uint8_t command[] = "ledNum=1,  Config=A\r\nledNum=2,  Config=A\r\n";
+        uart_poll_buffer(uart_dev, command, sizeof(command));
+        // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+        k_msleep(10000);
+
+        configureSPS(&adc, SPS_500_OSR);
+        sprintf((char*)command, "ledNum=1,  Config=B\r\nledNum=2,  Config=B\r\n");
+        uart_poll_buffer(uart_dev, command, sizeof(command));
+        // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+        k_msleep(10000);
+
+        configureSPS(&adc, SPS_1000_OSR);
+        sprintf((char*)command, "ledNum=1,  Config=C\r\nledNum=2,  Config=C\r\n");
+        uart_poll_buffer(uart_dev, command, sizeof(command));
+        // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+        k_msleep(10000);
+
+        configureSPS(&adc, SPS_2000_OSR);
+        sprintf((char*)command, "ledNum=1,  Config=D\r\nledNum=2,  Config=D\r\n");
+        uart_poll_buffer(uart_dev, command, sizeof(command));
+        uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+        k_msleep(10000);
     }
-    return 0;
 }
 
 
