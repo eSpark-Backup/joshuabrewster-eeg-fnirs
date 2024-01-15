@@ -9,6 +9,10 @@
 #define PWM_LED_PIN_N1 2
 #define PWM_LED_PIN_N2 3
 
+#define RPI_PICO_CLOCK_FREQUENCY 125000000U
+#define PWM_CLOCK_DIVIDER 256.f
+#define PWM_DUTY_CYCLE 0.25
+
 class PWMController 
 {
     public:
