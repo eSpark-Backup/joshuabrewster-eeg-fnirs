@@ -4,12 +4,13 @@
 #include <vector>
 #include "pwmcontroller.hpp"
 #include "uartcontroller.hpp"
+#include "hardware/pwm.h"
 
 int main() 
 {
     stdio_init_all();
 
-    std::vector<PWMController> pwmControllers = {PWMController(PWM_LED_PIN_N1, 1), PWMController(PWM_LED_PIN_N2, 2)};
+    std::vector<PWMController> pwmControllers = {PWMController(RED_LED_PIN, 1), PWMController(INFRARED_LED_PIN, 2)};
     UARTController uartController(UART_ID, BAUD_RATE, TX_PIN, RX_PIN);
 
     std::string receivedString;
@@ -25,17 +26,21 @@ int main()
                 // End of the string received, process it
                 auto ledConfig = uartController.parse(receivedString);
 
-                for (auto & pwmController : pwmControllers) 
+                if (pwmControllers[0].getLedNumber() == ledConfig.first)
                 {
-                    if (pwmController.getLedNumber() == ledConfig.first)
-                    {
-                        pwmController.updateWrapValue(ledConfig.second);
-                        pwmController.setPWMValues();
-                        break;
-                    }
-                    
+                    pwmControllers[0].stop();
+                    pwmControllers[1].stop();
+
+                    pwmControllers[0].updateWrapValue(ledConfig.second);
+                    pwmControllers[0].setPWMValues();
+                    pwmControllers[1].updateWrapValue(ledConfig.second);
+                    pwmControllers[1].setPWMValues();
+
+                    pwmControllers[0].start();
+                    sleep_us(pwmControllers[0].getOnTimeUs() + DELAY_BETWEEN_PULSES_US);
+                    pwmControllers[1].start();
                 }
-                // Clear the receivedString for the next input
+                // Clear the receivedString for the next input 
                 receivedString.clear();
             } 
             else 

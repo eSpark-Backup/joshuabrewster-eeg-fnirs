@@ -18,11 +18,16 @@ void PWMController::init()
     pwm_config_set_clkdiv(&config, PWM_CLOCK_DIVIDER);
     // Load the configuration into our PWM slice, and set it running.
     pwm_init(_sliceNum, &config, true);
+}
 
-    _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_A;
-    pwm_set_wrap(_sliceNum, _wrapValue);  // Set period
-    pwm_set_gpio_level(_pwmPin, _wrapValue * PWM_DUTY_CYCLE);
+void PWMController::start() 
+{
     pwm_set_enabled(_sliceNum, true);
+}
+
+void PWMController::stop() 
+{
+    pwm_set_enabled(_sliceNum, false);
 }
 
 void PWMController::updateWrapValue(char configChar) 
@@ -31,15 +36,19 @@ void PWMController::updateWrapValue(char configChar)
     {
         case 'A':
             _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_A;
+            onTimeUs = ((1.f / ADC_SPS_A) * PWM_DUTY_CYCLE) * 1000000;
             break;
         case 'B':
             _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_B;
+            onTimeUs = ((1.f / ADC_SPS_B) * PWM_DUTY_CYCLE) * 1000000;
             break;
         case 'C':
             _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_C;
+            onTimeUs = ((1.f / ADC_SPS_C) * PWM_DUTY_CYCLE) * 1000000;
             break;
         case 'D':
             _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_D;
+            onTimeUs = ((1.f / ADC_SPS_D) * PWM_DUTY_CYCLE) * 1000000;
             break;
         default:
             // No match found
@@ -56,6 +65,11 @@ void PWMController::setPWMValues(void)
 uint8_t PWMController::getLedNumber(void)
 {
     return _ledNumber;
+}
+
+uint32_t PWMController::getOnTimeUs(void)
+{
+    return onTimeUs;
 }
 
 PWMController::~PWMController() {
