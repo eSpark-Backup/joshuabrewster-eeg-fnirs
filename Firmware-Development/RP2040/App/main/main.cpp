@@ -5,6 +5,8 @@
 #include "pwmcontroller.hpp"
 #include "uartcontroller.hpp"
 #include "hardware/pwm.h"
+#include "hardware/timer.h"
+#include "hardware/clocks.h"
 
 int main() 
 {
@@ -13,7 +15,7 @@ int main()
     std::vector<PWMController> pwmControllers = {PWMController(RED_LED_PIN, 1), PWMController(INFRARED_LED_PIN, 2)};
     UARTController uartController(UART_ID, BAUD_RATE, TX_PIN, RX_PIN);
 
-    std::string receivedString;
+    std::string receivedString; 
 
     while (true) 
     {
@@ -28,8 +30,8 @@ int main()
 
                 if (pwmControllers[0].getLedNumber() == ledConfig.first)
                 {
-                    pwmControllers[0].stop();
-                    pwmControllers[1].stop();
+                    pwmControllers[0].init();
+                    pwmControllers[1].init();
 
                     pwmControllers[0].updateWrapValue(ledConfig.second);
                     pwmControllers[0].setPWMValues();
@@ -37,7 +39,7 @@ int main()
                     pwmControllers[1].setPWMValues();
 
                     pwmControllers[0].start();
-                    sleep_us(pwmControllers[0].getOnTimeUs() + DELAY_BETWEEN_PULSES_US);
+                    busy_wait_us(pwmControllers[0].getPulseDelay());
                     pwmControllers[1].start();
                 }
                 // Clear the receivedString for the next input 
