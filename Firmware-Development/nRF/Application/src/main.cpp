@@ -803,36 +803,36 @@ void main(void)
     //     k_msleep(10000);
     // }
 
-    // configureSPS(&adc, SPS_1000_OSR);
-    // uint8_t command[] = "ledNum=1,  Config=C\r\nledNum=2,  Config=C\r\n";
+    configureSPS(&adc, SPS_250_OSR);
+    uint8_t command[] = "ledNum=1,  Config=A\r\n";
+    uart_poll_buffer(uart_dev, command, sizeof(command));
     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    // while (1)
+    // {      
+    //     configureSPS(&adc, SPS_250_OSR);
+    //     uint8_t command[] = "ledNum=1,  Config=A\r\n";
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    //     k_msleep(10000);
 
-    while (1)
-    {      
-        configureSPS(&adc, SPS_250_OSR);
-        uint8_t command[] = "ledNum=1,  Config=A\r\nledNum=2,  Config=A\r\n";
-        uart_poll_buffer(uart_dev, command, sizeof(command));
-        // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-        k_msleep(10000);
+    //     configureSPS(&adc, SPS_500_OSR);
+    //     sprintf((char*)command, "ledNum=1,  Config=B\r\n");
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    //     k_msleep(10000);
 
-        configureSPS(&adc, SPS_500_OSR);
-        sprintf((char*)command, "ledNum=1,  Config=B\r\nledNum=2,  Config=B\r\n");
-        uart_poll_buffer(uart_dev, command, sizeof(command));
-        // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-        k_msleep(10000);
+    //     configureSPS(&adc, SPS_1000_OSR);
+    //     sprintf((char*)command, "ledNum=1,  Config=C\r\n");
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    //     k_msleep(10000);
 
-        configureSPS(&adc, SPS_1000_OSR);
-        sprintf((char*)command, "ledNum=1,  Config=C\r\nledNum=2,  Config=C\r\n");
-        uart_poll_buffer(uart_dev, command, sizeof(command));
-        // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-        k_msleep(10000);
-
-        configureSPS(&adc, SPS_2000_OSR);
-        sprintf((char*)command, "ledNum=1,  Config=D\r\nledNum=2,  Config=D\r\n");
-        uart_poll_buffer(uart_dev, command, sizeof(command));
-        uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-        k_msleep(10000);
-    }
+    //     configureSPS(&adc, SPS_2000_OSR);
+    //     sprintf((char*)command, "ledNum=1,  Config=D\r\n");
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    //     uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    //     k_msleep(10000);
+    // }
 }
 
 
