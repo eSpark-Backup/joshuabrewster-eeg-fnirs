@@ -43,21 +43,21 @@
     status = "disabled";
 };
 
-// &uart2 {
-//     status = "okay";
-//     current-speed = <115200>;
-//     tx-pin = <47>;
-//     rx-pin = <45>;
-//     rts-pin = <0xFFFFFFFF>;
-//     cts-pin = <0xFFFFFFFF>;
-// };
+&uart2 {
+    status = "okay";
+    current-speed = <115200>;
+    tx-pin = <47>;
+    rx-pin = <45>;
+    rts-pin = <0xFFFFFFFF>;
+    cts-pin = <0xFFFFFFFF>;
+};
 
 &uart3 {
     status = "okay";
     compatible = "nordic,nrf-uarte";
     current-speed = <115200>;
-    tx-pin = <43>;
-    rx-pin = <45>;
+    tx-pin = <31>;
+    rx-pin = <17>;
     rts-pin = <0xFFFFFFFF>;
     cts-pin = <0xFFFFFFFF>;
 };

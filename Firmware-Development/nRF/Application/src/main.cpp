@@ -38,6 +38,8 @@ const struct device *gpio_1_dev;
 #define ADS_1_RESET         ((uint8_t)9)   // 9  //108 (nirs ensemble)
 
 #define DBG_LED             ((uint8_t)19)  //Red LED
+#define GREEN_LED           ((uint8_t)37)  //GREEN LED
+#define BLUE_LED            ((uint8_t)38)  //BLUE LED
 
 #define MAX_INT             ((uint8_t)4) // 4 //113 (nirs ensemble)
 
@@ -49,6 +51,11 @@ LOG_MODULE_REGISTER(main);
 /* Static Functions */
 static int  gpio_init(void);
 static int  init_sensor_gpio_int(void);
+
+#define SPS_250_OSR  0b111
+#define SPS_500_OSR  0b110
+#define SPS_1000_OSR 0b101
+#define SPS_2000_OSR 0b100
 
 #if CONFIG_USE_ADS131M08
 /* Static Functions */
@@ -268,13 +275,19 @@ static int gpio_init(void) {
     //ret = gpio_pin_configure(gpio_0_dev, DATA_READY_GPIO, GPIO_INPUT | GPIO_ACTIVE_LOW);
     
     configureGPIO(DBG_LED, GPIO_OUTPUT_ACTIVE); // Set SYNC/RESET pin to HIGH
+    configureGPIO(GREEN_LED, GPIO_OUTPUT_ACTIVE); // Set SYNC/RESET pin to HIGH
+    configureGPIO(BLUE_LED, GPIO_OUTPUT_ACTIVE); // Set SYNC/RESET pin to HIGH
     setGPIO(DBG_LED, 0);
+    setGPIO(GREEN_LED, 0);
+    setGPIO(BLUE_LED, 0);
 
     LOG_INF("Entering sleep...");
     k_sleep(K_MSEC(1000)); // give some time to ADS131 to settle after power on
     LOG_INF("Waking up...");
 
     setGPIO(DBG_LED, 1);
+    setGPIO(GREEN_LED, 1);
+    setGPIO(BLUE_LED, 1);
     return 0;
 }
 
@@ -355,14 +368,33 @@ static int init_ads131_gpio_int(void){
     return ret;
 }
 
+
+
+// Function to configure ADS131_CLOCK register with desired SPS
+static int configureSPS(ADS131M08* adc, uint16_t osr) {
+    // Build the configuration value for the ADS131_CLOCK register
+    uint16_t configValue = 0b1111111100000011 | (osr<<2);
+
+    // Write the configuration to the ADS131_CLOCK register
+    if (adc->writeReg(ADS131_CLOCK, configValue)) {
+        //LOG_INF("ADS131_CLOCK register successfully configured");
+        return 0;  // Success
+    } else {
+        LOG_ERR("***ERROR: Writing ADS131_CLOCK register.");
+        return 1;  // Error
+    }
+}
+
 static int setupadc(ADS131M08 * adc) {
     int reg_value = 0;
     #if CONFIG_USE_ADS131M08
-    if(adc->writeReg(ADS131_CLOCK,0b1111111100011111)){  //< Clock register (page 55 in datasheet)
-        //LOG_INF("ADS131_CLOCK register successfully configured");
-    } else {
-        LOG_ERR("***ERROR: Writing ADS131_CLOCK register.");
-    }
+    
+    configureSPS(*&adc, SPS_250_OSR);
+    // if(adc->writeReg(ADS131_CLOCK,0b1111111100011111)){  //< Clock register (page 55 in datasheet)
+    //     //LOG_INF("ADS131_CLOCK register successfully configured");
+    // } else {
+    //     LOG_ERR("***ERROR: Writing ADS131_CLOCK register.");
+    // }
     k_msleep(10);
     if(adc->setGain(32)){    //< Gain Setting, 1-128
         //LOG_INF("ADC Gain properly set to 32");
@@ -399,26 +431,27 @@ static int setupadc(ADS131M08 * adc) {
     } else {
         LOG_ERR("***ERROR: Writing ADS131_THRSHLD_LSB register.");
     }  
-
-    reg_value = adc->readReg(ADS131_CLOCK);
-    //LOG_INF("ADS131_CLOCK: 0x%X", reg_value);
     k_msleep(10); 
+
+    // reg_value = adc->readReg(ADS131_CLOCK);
+    // //LOG_INF("ADS131_CLOCK: 0x%X", reg_value);
+    //k_msleep(10); 
     
-    reg_value = adc->readReg(ADS131_GAIN1);
-    //LOG_INF("ADS131_GAIN1: 0x%X", reg_value);
-    k_msleep(10);
+    // reg_value = adc->readReg(ADS131_GAIN1);
+    // //LOG_INF("ADS131_GAIN1: 0x%X", reg_value);
+    // k_msleep(10);
 
-    reg_value = adc->readReg(ADS131_ID);
-    //LOG_INF("ADS131_ID: 0x%X", reg_value);
-    k_msleep(10);
+    // reg_value = adc->readReg(ADS131_ID);
+    // //LOG_INF("ADS131_ID: 0x%X", reg_value);
+    // k_msleep(10);
 
-    reg_value = adc->readReg(ADS131_STATUS);
-    //LOG_INF("ADS131_STATUS: 0x%X", reg_value);
-    k_msleep(10);
+    // reg_value = adc->readReg(ADS131_STATUS);
+    // //LOG_INF("ADS131_STATUS: 0x%X", reg_value);
+    // k_msleep(10);
 
-    reg_value = adc->readReg(ADS131_MODE);
-    //LOG_INF("ADS131_MODE: 0x%X", reg_value);
-    k_msleep(10);
+    // reg_value = adc->readReg(ADS131_MODE);
+    // //LOG_INF("ADS131_MODE: 0x%X", reg_value);
+    // k_msleep(10);
 
     #endif
     return reg_value;
@@ -539,6 +572,12 @@ static void qmc5883l_interrupt_workQueue_handler(struct k_work* wrk)
 }
 #endif
 
+void uart_poll_buffer(const struct device *dev, const uint8_t *data, size_t size)
+{
+    for (size_t i = 0; i < size; i++) {
+        uart_poll_out(dev, data[i]);
+    }
+}
 
 static void setupPeripherals() {
     
@@ -647,8 +686,8 @@ static void setupPeripherals() {
 
     //need to time this correctly with the ADC if controlling LEDs on second MCU
     #if CONFIG_USE_MCU2MCU    
-        char cmd_buf[6] = "ledr1";//"debug"; "ledr1"; //"ledr2";
-        uart_tx(uart_dev, (uint8_t *)&cmd_buf[0], sizeof(cmd_buf), SYS_FOREVER_MS);
+        uint8_t command[] = "ledNum=1,  Config=A\r\n";
+        uart_poll_buffer(uart_dev, command, sizeof(command));
     #endif 
 
 
@@ -682,12 +721,6 @@ static int init_uart(void){
     return ret;
 }
 
-void uart_poll_buffer(const struct device *dev, const uint8_t *data, size_t size)
-{
-    for (size_t i = 0; i < size; i++) {
-        uart_poll_out(dev, data[i]);
-    }
-}
 
 static void uart_cb(const struct device *dev, struct uart_event *evt, void *user_data)
 {	
@@ -735,40 +768,12 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *user
 
 
 
-// Function to configure ADS131_CLOCK register with desired SPS
-int configureSPS(ADS131M08* adc, uint16_t osr) {
-    // Build the configuration value for the ADS131_CLOCK register
-    uint16_t configValue = 0b1111111100000011 | (osr<<2);
-
-    // Write the configuration to the ADS131_CLOCK register
-    if (adc->writeReg(ADS131_CLOCK, configValue)) {
-        //LOG_INF("ADS131_CLOCK register successfully configured");
-        return 0;  // Success
-    } else {
-        LOG_ERR("***ERROR: Writing ADS131_CLOCK register.");
-        return 1;  // Error
-    }
-}
-
-#define SPS_250_OSR 0b111
-#define SPS_500_OSR 0b110
-#define SPS_1000_OSR 0b101
-#define SPS_2000_OSR 0b100
-
-
-
 
 /**    MAIN    */
 
 void main(void)
 {
     LOG_INF("Entry point");
-    // LOG_ERR("This is a error message!");
-    // LOG_WRN("This is a warning message!");
-    // LOG_INF("This is a information message!");
-    // LOG_DBG("This is a debugging message!");
-    // ble_tx_buff[225] = 0x0D;
-    // ble_tx_buff[226] = 0x0A;
 
     // Needed for OTA
     os_mgmt_register_group();
@@ -778,7 +783,20 @@ void main(void)
 
     Bluetooth::SetupBLE();
     
-    //LOG_INF("Starting in 3...");
+    
+}
+
+
+//test stuff from main function
+    // ble_tx_buff[225] = 0x0D;
+    // ble_tx_buff[226] = 0x0A;
+
+// LOG_ERR("This is a error message!");
+// LOG_WRN("This is a warning message!");
+// LOG_INF("This is a information message!");
+// LOG_DBG("This is a debugging message!");
+
+//LOG_INF("Starting in 3...");
     // k_msleep(1000);
     // //LOG_INF("2...");
     // k_msleep(1000);
@@ -803,9 +821,6 @@ void main(void)
     //     k_msleep(10000);
     // }
 
-    configureSPS(&adc, SPS_250_OSR);
-    uint8_t command[] = "ledNum=1,  Config=A\r\n";
-    uart_poll_buffer(uart_dev, command, sizeof(command));
     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
     // while (1)
     // {      
@@ -833,7 +848,6 @@ void main(void)
     //     uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
     //     k_msleep(10000);
     // }
-}
 
 
 
