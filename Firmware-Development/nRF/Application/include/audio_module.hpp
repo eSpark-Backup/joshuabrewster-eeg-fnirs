@@ -2,13 +2,13 @@
 
 #include <string.h>
 #include <nrf.h>
-#include <kernel.h>
+#include <zephyr/kernel.h>
 
 #include <zephyr/types.h>
-#include <device.h>
-#include <drivers/gpio.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
 
-#include <sys/util.h>
+#include <zephyr/sys/util.h>
 #include <atomic>
 #include "ble_types.hpp"
 #include "ble_commands.hpp"
@@ -17,13 +17,12 @@
 /*************************/
 #include <string.h>
 #include <nrf.h>
-#include <kernel.h>
-#include <device.h>
-#include <drivers/i2s.h>
-#include <drivers/gpio.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/i2s.h>
+#include <zephyr/drivers/gpio.h>
 
-#include <logging/log.h>
-#include <sys/printk.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/sys/printk.h>
 
 /* Prepare for 32 sample values */
 #define NUM_SAMPLES 32

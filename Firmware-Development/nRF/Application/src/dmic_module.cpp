@@ -1,5 +1,5 @@
-#include <logging/log.h>
-#include <sys/printk.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/sys/printk.h>
 #include "dmic_module.hpp"
 #include "ble_service.hpp"
 #include "usb_comm_handler.hpp"

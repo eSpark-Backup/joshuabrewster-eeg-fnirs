@@ -1,12 +1,12 @@
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include <string.h>
-#include <init.h>
-#include <drivers/gpio.h>
-#include <sys/printk.h>
+#include <zephyr/init.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/sys/printk.h>
 //#include <sys/__assert.h>
 #include <stdlib.h>
-#include <drivers/spi.h>
-#include <logging/log.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/logging/log.h>
 
 #include "ADS131M08_zephyr.hpp"
 
@@ -57,26 +57,26 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
     // Try to bind chip select device
 
     if(cs_pin >= 100) {
-        csConfig.gpio_dev = device_get_binding("GPIO_1");
-        csConfig.gpio_pin = cs_pin - 100;
+        csConfig.gpio.port = device_get_binding("GPIO_1");
+        csConfig.gpio.pin = cs_pin - 100;
     } else if(cs_pin >= 32) {
-        csConfig.gpio_dev = device_get_binding("GPIO_1");
-        csConfig.gpio_pin = cs_pin - 32;
+        csConfig.gpio.port = device_get_binding("GPIO_1");
+        csConfig.gpio.pin = cs_pin - 32;
     } else {
-        csConfig.gpio_dev = device_get_binding("GPIO_0");
-        csConfig.gpio_pin = cs_pin;
+        csConfig.gpio.port = device_get_binding("GPIO_0");
+        csConfig.gpio.pin = cs_pin;
     }
 
     csConfig.delay = 0;
-    csConfig.gpio_dt_flags = GPIO_ACTIVE_LOW;
+    csConfig.gpio.dt_flags = GPIO_ACTIVE_LOW;
 
     // Bind SPI device only if chip select device successfully binded
-    if (csConfig.gpio_dev)
+    if (csConfig.gpio.port)
     {
         spiConfig.frequency = spi_frequency;
         spiConfig.operation = SPI_MODE_CPHA | SPI_WORD_SET(8); //< Default Word Size of ADS131M08 is 24
         spiConfig.slave = 0;
-        spiConfig.cs = &csConfig;
+        spiConfig.cs = csConfig;
 
         spiDevice = device_get_binding("SPI_0");
     }
@@ -123,13 +123,13 @@ void ADS131M08::spiCommandFrame(uint8_t frame_size, uint8_t *cmdFrame) {
         const struct spi_buf txBuffers[] = {
             {
                 .buf = cmdFrame,
-                .len = frame_size,
+                .len = (size_t)frame_size,
             },
         };
         const struct spi_buf rxBuffers[] = {
             {
                 .buf = NULL,
-                .len = frame_size,
+                .len = (size_t)frame_size,
             },
         };
         const struct spi_buf_set txSet = {
@@ -157,17 +157,17 @@ uint16_t ADS131M08::spiResponseFrame(uint8_t frame_size) {
         const struct spi_buf txBuffers[] = {
             {
                 .buf = NULL,
-                .len = frame_size,
+                .len = (size_t)frame_size,
             },
         };
         const struct spi_buf rxBuffers[] = {
             {
                 .buf = resp_buffer,
-                .len = 2,
+                .len = (size_t)2,
             },
             {
                 .buf = NULL,
-                .len = (frame_size - 2),
+                .len = (size_t)(frame_size - 2),
             },
         };
         const struct spi_buf_set txSet = {
@@ -196,13 +196,13 @@ void ADS131M08::spiDataFrame(uint8_t frame_size, uint8_t *data_buffer) {
         const struct spi_buf txBuffers[] = {
             {
                 .buf = dummy_frame,
-                .len = frame_size,
+                .len = (size_t)frame_size,
             },
         };
         const struct spi_buf rxBuffers[] = {
             {
                 .buf = data_buffer,
-                .len = frame_size,
+                .len = (size_t)frame_size,
             },
         };
         const struct spi_buf_set txSet = {
@@ -470,11 +470,11 @@ uint32_t ADS131M08::spiTransferWord(uint16_t bytes) {
     const struct spi_buf buf[2] = { 
         {
             .buf = bytes,
-            .len = 2
+            .len = (size_t)2
         }, 
         {
             .buf = 0x00,
-            .len = 1
+            .len = (size_t)1
         }
     };
     const struct spi_buf_set tx = {

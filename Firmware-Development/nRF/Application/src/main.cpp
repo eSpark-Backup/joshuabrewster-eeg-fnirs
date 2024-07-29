@@ -1,32 +1,47 @@
-#include <zephyr.h>
-#include <device.h>
-#include <devicetree.h>
-#include <drivers/spi.h>
-#include <drivers/gpio.h>
-#include <logging/log.h>
-#include <sys/printk.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/sys/printk.h>
+// #include <zephyr/mgmt/mcumgr/grp/os_mgmt/os_mgmt.h>      // for OTA update
+// #include <zephyr/mgmt/mcumgr/grp/img_mgmt/img_mgmt.h>      // for OTA update
+// // Needed for OTA
+// #include "os_mgmt/os_mgmt.h"
+// #include "img_mgmt/img_mgmt.h"
 
-#include "ADS131M08_zephyr.hpp"
-#include "max30102.hpp"
-#include "mpu6050.hpp"
-#include "bme280.hpp"
-#include "qmc5883l.hpp"
-#include "serial_controller.hpp"
-#include "usb_comm_handler.hpp"
-#include "audio_module.hpp"
-#include "dmic_module.hpp"
+// #include "ble_service.hpp"
+// #include "ADS131M08_zephyr.hpp"
+// #include "max30102.hpp"
+// #include "mpu6050.hpp"
+// #include "bme280.hpp"
+// #include "qmc5883l.hpp"
+// #include "serial_controller.hpp"
+// #include "usb_comm_handler.hpp"
+// #include "audio_module.hpp"
+// #include "dmic_module.hpp"
 
-#include "ble_service.hpp"
-// Needed for OTA
-#include "os_mgmt/os_mgmt.h"
-#include "img_mgmt/img_mgmt.h"
+// //#include "gpio_macros.cpp"
+// //#include "led_testing.cpp" //pwm and LED alternating routines
+
+
+LOG_MODULE_REGISTER(main);
 
 /* Global variables*/
 const struct device *gpio_0_dev;
 const struct device *gpio_1_dev;
 
-//#include "gpio_macros.cpp"
-//#include "led_testing.cpp" //pwm and LED alternating routines
+/* The devicetree node identifier for device alias. */
+#define LED_NODE(x) DT_ALIAS(x)
+#define DEVICE_NODE(x) DT_ALIAS(x)
+/* 1000 msec = 1 sec */
+#define SLEEP_TIME_MS   1000
+
+#define SPS_250_OSR  0b111
+#define SPS_500_OSR  0b110
+#define SPS_1000_OSR 0b101
+#define SPS_2000_OSR 0b100
 
 //make sure the pins are updated in the .overlay file as well, and double check the prj.conf
 #define ADS_CS              ((uint8_t)22)
@@ -37,25 +52,15 @@ const struct device *gpio_1_dev;
 #define DATA_READY_1_GPIO   ((uint8_t)11)  // 11 //14 (nirs ensemble)
 #define ADS_1_RESET         ((uint8_t)9)   // 9  //108 (nirs ensemble)
 
-#define DBG_LED             ((uint8_t)19)  //Red LED
-#define GREEN_LED           ((uint8_t)37)  //GREEN LED
-#define BLUE_LED            ((uint8_t)38)  //BLUE LED
-
-#define MAX_INT             ((uint8_t)4) // 4 //113 (nirs ensemble)
-
+#define MAX_INT             ((uint8_t)4)   // 4 //113 (nirs ensemble)
 #define MPU_INT             ((uint8_t)5)   // 5 //4 (nirs ensemble)
 #define QMC5883L_DRDY       ((uint8_t)6)   // 6 //32 (nirs ensemble)
 
-LOG_MODULE_REGISTER(main);
 
 /* Static Functions */
 static int  gpio_init(void);
 static int  init_sensor_gpio_int(void);
 
-#define SPS_250_OSR  0b111
-#define SPS_500_OSR  0b110
-#define SPS_1000_OSR 0b101
-#define SPS_2000_OSR 0b100
 
 #if CONFIG_USE_ADS131M08
 /* Static Functions */
@@ -79,6 +84,7 @@ static uint8_t ads131m08_1_sampleNum = 0;
 static uint8_t i = 0;
 static uint8_t j = 0;
 #endif 
+
 
 #if CONFIG_USE_MAX30102
 /* Static Functions */
@@ -184,9 +190,8 @@ DmicModule dmic;
 Tlc5940 tlc;
 #endif
 
-// GPIO Macros
 
-
+/* GPIO Macros */
 static int configureGPIO(int pin, gpio_flags_t rule) {
     int ret = 0;
     if(pin < 32) {
@@ -211,7 +216,7 @@ static int configureInterrupt(int pin, gpio_flags_t rule) {
     return ret;
 }
 
-static int addGPIOCallback(int pin, gpio_callback * gpio_cb, void (*cb)(const struct device *port, struct gpio_callback *cb, gpio_port_pins_t pins)) {
+static int addGPIOCallback(int pin, struct gpio_callback *gpio_cb, void (*cb)(const struct device *port, struct gpio_callback *cb, gpio_port_pins_t pins)) {
     int ret = 0;
     if(pin < 32) {
         gpio_init_callback(gpio_cb, cb, BIT(pin));    
@@ -255,39 +260,31 @@ static int setGPIO(int pin, int state) {
     }
     return ret;
 }
+/* GPIO Macros END */
 
-// //////////////////////////////
+
+/* LED Macros */
+static const struct gpio_dt_spec power_led = GPIO_DT_SPEC_GET(LED_NODE(powerled), gpios);
+static const struct gpio_dt_spec debug_led = GPIO_DT_SPEC_GET(LED_NODE(debugled), gpios);
+static const struct gpio_dt_spec error_led = GPIO_DT_SPEC_GET(LED_NODE(errorled), gpios);
 
 static int gpio_init(void) {
+    if (!gpio_is_ready_dt(&power_led) || !gpio_is_ready_dt(&debug_led) || !gpio_is_ready_dt(&error_led)) {
+        return 0;
+    }
     
-    gpio_0_dev = device_get_binding("GPIO_0");
-	if (gpio_0_dev == NULL) {
-		LOG_ERR("***ERROR: GPIO_0 device binding!");
-        return -1;
-	}  
-    gpio_1_dev = device_get_binding("GPIO_1");
-	if (gpio_1_dev == NULL) {
-		LOG_ERR("***ERROR: GPIO_1 device binding!");
-        return -1;
-	}        
+    if ((gpio_pin_configure_dt(&power_led, GPIO_OUTPUT_HIGH) < 0) || (gpio_pin_configure_dt(&debug_led, GPIO_OUTPUT_INACTIVE) < 0) || (gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_INACTIVE) < 0)) {
+        return 0;
+    }
 
-    //init_ads131_gpio_int();
-    //ret = gpio_pin_configure(gpio_0_dev, DATA_READY_GPIO, GPIO_INPUT | GPIO_ACTIVE_LOW);
-    
-    configureGPIO(DBG_LED, GPIO_OUTPUT_ACTIVE); // Set SYNC/RESET pin to HIGH
-    configureGPIO(GREEN_LED, GPIO_OUTPUT_ACTIVE); // Set SYNC/RESET pin to HIGH
-    configureGPIO(BLUE_LED, GPIO_OUTPUT_ACTIVE); // Set SYNC/RESET pin to HIGH
-    setGPIO(DBG_LED, 0);
-    setGPIO(GREEN_LED, 0);
-    setGPIO(BLUE_LED, 0);
+        // if ((gpio_pin_toggle_dt(&power_led)) || (gpio_pin_toggle_dt(&debug_led)) || (gpio_pin_toggle_dt(&error_led))) {
+        //         return 0;
+        // }
 
-    LOG_INF("Entering sleep...");
-    k_sleep(K_MSEC(1000)); // give some time to ADS131 to settle after power on
-    LOG_INF("Waking up...");
+    LOG_INF("%s: Entering sleep...", __FUNCTION__);
+    k_msleep(SLEEP_TIME_MS); // give some time to ADS131 to settle after power on
+    LOG_INF("%s: Waking up...", __FUNCTION__);
 
-    setGPIO(DBG_LED, 1);
-    setGPIO(GREEN_LED, 1);
-    setGPIO(BLUE_LED, 1);
     return 0;
 }
 
@@ -515,7 +512,7 @@ static void ads131m08_1_interrupt_workQueue_handler(struct k_work* wrk)
 #endif        
     }
 }
-#endif
+#endif /* CONFIG_USE_ADS131M08 */
 
 #if CONFIG_USE_MAX30102
 static void max30102_irq_cb(const struct device *port, struct gpio_callback *cb, gpio_port_pins_t pins){
@@ -533,7 +530,7 @@ static void max30102_interrupt_workQueue_handler(struct k_work* wrk)
     //LOG_INF("Max30102 Interrupt!");
     max30102.HandleInterrupt();
 }
-#endif
+#endif /* CONFIG_USE_MAX30102 */
 
 #if CONFIG_USE_MPU6050
 static void mpu6050_irq_cb(const struct device *port, struct gpio_callback *cb, gpio_port_pins_t pins){
@@ -551,7 +548,7 @@ static void mpu6050_interrupt_workQueue_handler(struct k_work* wrk)
     //LOG_INF("MPU6050 Interrupt!");
     mpu6050.HandleInterrupt();
 }
-#endif
+#endif /* CONFIG_USE_MPU6050 */
 
 
 #if CONFIG_USE_QMC5883L
@@ -570,7 +567,8 @@ static void qmc5883l_interrupt_workQueue_handler(struct k_work* wrk)
     //LOG_INF("QMC5883L Interrupt!");
     qmc5883l.HandleInterrupt();
 }
-#endif
+#endif /* CONFIG_USE_QMC5883L */
+
 
 void uart_poll_buffer(const struct device *dev, const uint8_t *data, size_t size)
 {
@@ -762,93 +760,32 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *user
             break;
 	}
 }
-#endif
-
-
-
-
+#endif /* CONFIG_USE_MCU2MCU */
 
 
 /**    MAIN    */
 
-void main(void)
+int main(void)
 {
+    LOG_MODULE_DECLARE(main, CONFIG_LOG_DEFAULT_LEVEL);
     LOG_INF("Entry point");
+        // printk("Entry point printk.");
 
-    // Needed for OTA
-    os_mgmt_register_group();
-    img_mgmt_register_group();
+    // Needed for OTA     // work on this later, following two functions are not available in 3.5
+    // os_mgmt_register_group();
+    // img_mgmt_register_group();
 
     setupPeripherals(); //will setup interrupts etc
 
     Bluetooth::SetupBLE();
+
+
+    while (1) {
+        if (gpio_pin_toggle_dt(&debug_led)) {       // Toggle debug led
+                return 0;
+        }
+        k_msleep(SLEEP_TIME_MS);
+    }
     
-    
+    return 0;
 }
-
-
-//test stuff from main function
-    // ble_tx_buff[225] = 0x0D;
-    // ble_tx_buff[226] = 0x0A;
-
-// LOG_ERR("This is a error message!");
-// LOG_WRN("This is a warning message!");
-// LOG_INF("This is a information message!");
-// LOG_DBG("This is a debugging message!");
-
-//LOG_INF("Starting in 3...");
-    // k_msleep(1000);
-    // //LOG_INF("2...");
-    // k_msleep(1000);
-    // //LOG_INF("1...");
-    // k_msleep(1000);
-    
-    // while(1){
-    //     #if 0        
-    //         bool drdy = getGPIO(DATA_READY_GPIO);
-
-    //         if(drdy) {
-    //             adc.readAllChannels(adcRawData);
-
-    //             sampleNum++;
-    //             //LOG_INF("Sample: %d", sampleNum);
-    //             if (sampleNum == 100){
-    //                 LOG_INF("ADC[0]: %d", ((adcRawData[3] << 16) | (adcRawData[4] << 8) | adcRawData[5]));
-    //             }
-    //         }      
-    //     #endif
-    //     LOG_INF("Hi");
-    //     k_msleep(10000);
-    // }
-
-    // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-    // while (1)
-    // {      
-    //     configureSPS(&adc, SPS_250_OSR);
-    //     uint8_t command[] = "ledNum=1,  Config=A\r\n";
-    //     uart_poll_buffer(uart_dev, command, sizeof(command));
-    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-    //     k_msleep(10000);
-
-    //     configureSPS(&adc, SPS_500_OSR);
-    //     sprintf((char*)command, "ledNum=1,  Config=B\r\n");
-    //     uart_poll_buffer(uart_dev, command, sizeof(command));
-    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-    //     k_msleep(10000);
-
-    //     configureSPS(&adc, SPS_1000_OSR);
-    //     sprintf((char*)command, "ledNum=1,  Config=C\r\n");
-    //     uart_poll_buffer(uart_dev, command, sizeof(command));
-    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-    //     k_msleep(10000);
-
-    //     configureSPS(&adc, SPS_2000_OSR);
-    //     sprintf((char*)command, "ledNum=1,  Config=D\r\n");
-    //     uart_poll_buffer(uart_dev, command, sizeof(command));
-    //     uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
-    //     k_msleep(10000);
-    // }
-
-
-
-

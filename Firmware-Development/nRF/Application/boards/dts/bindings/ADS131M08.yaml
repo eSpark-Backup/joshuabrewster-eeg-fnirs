@@ -1,0 +1,22 @@
+# description: ADS131 SPI driver (SPI slave with EasyDMA)
+
+# compatible: "joshua,ads-spi"
+
+# # include: nordic,nrf-spi-common.yaml
+# # include: [adc-controller.yaml, spi-device.yaml]
+
+# properties:
+#   def-char:
+#     type: int
+#     # required: true
+#     description: |
+#         Default character. Character clocked out when the slave was not
+#         provided with buffers and is ignoring the transaction.
+
+
+
+description: ADS131M08 8-channel 24-bit Analog-to-Digital Converter
+
+compatible: "ads131m08"
+
+include: spi-device.yaml

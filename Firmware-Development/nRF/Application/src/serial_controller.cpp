@@ -3,16 +3,16 @@
 #include <algorithm>
 #include <string.h>
 
-#include <sys/crc.h>
+#include <zephyr/sys/crc.h>
 
 #include <stdio.h>
 #include <device.h>
-#include <drivers/uart.h>
-#include <zephyr.h>
-#include <sys/ring_buffer.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/kernel.h>
+#include <zephyr/sys/ring_buffer.h>
 
-#include <usb/usb_device.h>
-#include <logging/log.h>
+#include <zephyr/usb/usb_device.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(usb_serial, LOG_LEVEL_INF);
 

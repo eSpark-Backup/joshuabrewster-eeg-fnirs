@@ -1,23 +1,23 @@
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/conn.h>
-#include <bluetooth/hci.h>
-#include <bluetooth/hci_vs.h>
-#include <sys/util.h>
-#include <sys/byteorder.h>
-#include <logging/log.h>
-#include <sys/atomic.h>
+#include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/conn.h>
+#include <zephyr/bluetooth/hci.h>
+#include <zephyr/bluetooth/hci_vs.h>
+#include <zephyr/sys/util.h>
+#include <zephyr/sys/byteorder.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/sys/atomic.h>
 #include "ble_commands.hpp"
 
 #include "ble_gatt.hpp"
 #include "ble_service.hpp"
-#include <mgmt/mcumgr/smp_bt.h>
+#include <zephyr/mgmt/mcumgr/transport/smp_bt.h>
 
 
 LOG_MODULE_REGISTER(bluetooth);
 
-namespace
+namespace UNNAMED
 {
 
 constexpr static auto RssiPollPeriod = 333;              ///< RSSI polling period in milliseconds
@@ -247,14 +247,14 @@ namespace Bluetooth
  */
 int SetupBLE()
 {
-    //worker.Initialize();
+    // worker.Initialize();
 
     bt_conn_cb_register(&connectionCallbacks);
 
     int err = bt_enable(&Gatt::OnBluetoothStarted);
     if (err)
     {
-        LOG_INF("enable Bluetooth with status %d", err);
+        LOG_INF("Enable Bluetooth with status %d", err);
     }
 
     GattRegisterControlCallback(CommandId::BleCmd, OnBleCommand);

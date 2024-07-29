@@ -1,6 +1,6 @@
 #pragma once
 #include <atomic>
-#include <drivers/i2c.h>
+#include <zephyr/drivers/i2c.h>
 
 /**
  * @brief template transport class used to read/write device registers via i2c bus

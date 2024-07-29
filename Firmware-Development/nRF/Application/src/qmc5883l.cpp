@@ -1,11 +1,11 @@
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include <string.h>
-#include <init.h>
-#include <drivers/gpio.h>
-#include <sys/printk.h>
+#include <zephyr/init.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/sys/printk.h>
 //#include <sys/__assert.h>
 #include <stdlib.h>
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 
 #include "qmc5883l.hpp"
 #include "ble_service.hpp"
