@@ -26,7 +26,8 @@ public:
      */
     void Initialize()
     {
-        int status = i2c_configure(dev, I2C_SPEED_SET(I2C_SPEED_FAST) | I2C_MODE_MASTER);
+        int status = i2c_configure(dev, I2C_SPEED_SET(I2C_SPEED_FAST) | I2C_MODE_CONTROLLER);
+        // int status = i2c_configure(dev, I2C_SPEED_SET(I2C_SPEED_FAST) | I2C_MODE_MASTER);
         deviceStatus.store(status, std::memory_order_relaxed);
     }
 

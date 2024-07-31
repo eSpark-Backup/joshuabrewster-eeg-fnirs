@@ -17,6 +17,6 @@ target_include_directories(app PRIVATE
                             include
                             include/Transports)
 
-# set_property(TARGET app PROPERTY CXX_STANDARD 17)
+set_property(TARGET app PROPERTY CXX_STANDARD 17)
 
-project(cpuapp)
+project(BT40_port_to_3.5)

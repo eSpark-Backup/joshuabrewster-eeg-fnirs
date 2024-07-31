@@ -19,7 +19,7 @@ Max30102::Max30102(UsbCommHandler &controller) : serialHandler(controller) {
 
 int Max30102::Initialize() {
 
-    int ret = 0;
+    // int ret = 0;
     uint8_t part_id;
     uint8_t interrupt_status_reg;
     
@@ -120,7 +120,7 @@ void Max30102::Shutdown() {
 }
 
 void Max30102::Wakeup() {
-    uint8_t mode_cfg_reg;
+    // uint8_t mode_cfg_reg;
     // Write 0 to SHDN bit
     transport.UpdateRegister(MAX30102_REG_MODE_CFG, MAX30102_MODE_CFG_SHDN_MASK, 0);
 }

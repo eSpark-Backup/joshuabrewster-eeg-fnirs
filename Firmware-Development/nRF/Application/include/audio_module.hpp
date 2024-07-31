@@ -25,9 +25,9 @@
 #include <zephyr/sys/printk.h>
 
 /* Prepare for 32 sample values */
-#define NUM_SAMPLES 32
-#define BLOCK_SIZE 128
-#define NUM_BLOCKS 5
+#define NUM_SAMPLES     32
+#define I2S_BLOCK_SIZE  128
+#define NUM_BLOCKS      5
 // #define J_LIMIT sizeof(rawAudioData) / (NUM_BLOCKS * NUM_SAMPLES * 2)
 // #define J_LIMIT (93056 / (NUM_BLOCKS * NUM_SAMPLES * 2))
 

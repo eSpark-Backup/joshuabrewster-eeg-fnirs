@@ -148,7 +148,7 @@ void ADS131M08::spiCommandFrame(uint8_t frame_size, uint8_t *cmdFrame) {
 }
 
 uint16_t ADS131M08::spiResponseFrame(uint8_t frame_size) {
-    uint16_t value = 0;
+    // uint16_t value = 0;
     uint8_t resp_buffer[2] = {0};
 
     if (spiDevice != nullptr)

@@ -7,6 +7,7 @@
     compatible = "nordic,nrf5340-dk-nrf5340-cpuapp";
     
 	chosen {
+		 zephyr,console = &uart2;
          zephyr,sram = &sram0_image;
          zephyr,flash = &flash0;
          zephyr,code-partition = &slot0_partition;
@@ -18,6 +19,8 @@
 		errorled = &led0;
 		powerled = &led1;
 		debugled = &led2;
+		uart2 = &uart2;
+		uart3 = &uart3;
 	};
 
 	buttons {
@@ -55,7 +58,6 @@
 
 &led3 {
 	status = "disabled";
-	label = "not_used";
 };
 	
 &uart0 {
@@ -72,6 +74,7 @@
 	pinctrl-0 = <&uart2_default>;
 	pinctrl-1 = <&uart2_sleep>;
 	pinctrl-names = "default", "sleep";
+	// label = "UART_2";
     // tx-pin = <47>;
     // rx-pin = <45>;
     // rts-pin = <0xFFFFFFFF>;
@@ -84,6 +87,7 @@
 	pinctrl-0 = <&uart3_default>;
 	pinctrl-1 = <&uart3_sleep>;
 	pinctrl-names = "default", "sleep";
+	// label = "UART_3";
     // tx-pin = <31>;
     // rx-pin = <17>;
     // rts-pin = <0xFFFFFFFF>;
@@ -219,6 +223,16 @@ dmic_dev: &pdm0 {
 
 &rtc1 {
 	status = "disabled";
+};
+
+&gpio0 {
+	status = "okay";
+	label = "GPIO_0";
+};
+
+&gpio1 {
+	status = "okay";
+	label = "GPIO_1";
 };
 
 // gpio0: gpio@842500 {

@@ -13,7 +13,7 @@ Bme280::Bme280(UsbCommHandler &controller) : serialHandler(controller) {
 int Bme280::Initialize() {
 
     int ret = 0;
-    uint8_t part_id;
+    // uint8_t part_id;
     
     LOG_DBG("Starting Bme280 Initialization..."); 
     

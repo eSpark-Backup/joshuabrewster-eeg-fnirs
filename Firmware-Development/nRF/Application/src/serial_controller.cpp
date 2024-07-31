@@ -6,7 +6,7 @@
 #include <zephyr/sys/crc.h>
 
 #include <stdio.h>
-#include <device.h>
+#include <zephyr/device.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/ring_buffer.h>

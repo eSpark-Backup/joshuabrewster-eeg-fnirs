@@ -12,12 +12,14 @@
 
 #include "ble_gatt.hpp"
 #include "ble_service.hpp"
+extern "C" {
 #include <zephyr/mgmt/mcumgr/transport/smp_bt.h>
+}
 
 
 LOG_MODULE_REGISTER(bluetooth);
 
-namespace UNNAMED
+namespace
 {
 
 constexpr static auto RssiPollPeriod = 333;              ///< RSSI polling period in milliseconds
@@ -35,12 +37,14 @@ static uint16_t default_conn_handle = 0;
  */
 void exchange_func(struct bt_conn *conn, uint8_t err, struct bt_gatt_exchange_params *params)
  {
-    struct bt_conn_info info = {0};
+    struct bt_conn_info info = {};
+    // struct bt_conn_info info = {0};
 
     printk("MTU exchange %s\n", err == 0 ? "successful" : "failed");
     err = bt_conn_get_info(conn, &info);
 
-    if (info.role == BT_CONN_ROLE_MASTER) {
+    // if (info.role == BT_CONN_ROLE_MASTER) {
+    if (info.role == BT_CONN_ROLE_CENTRAL) {
 
     }
 }
