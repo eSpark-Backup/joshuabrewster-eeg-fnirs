@@ -13,6 +13,8 @@
 // For registering callback
 #include "ble_service.hpp"
 
+#define DEVICE_NODE DT_NODELABEL(i2c1)
+
 LOG_MODULE_REGISTER(qmc5883l, LOG_LEVEL_INF);
 
 Qmc5883l::Qmc5883l(UsbCommHandler &controller) : serialHandler(controller) {
@@ -27,7 +29,8 @@ int Qmc5883l::Initialize() {
     LOG_DBG("Starting Qmc5883l Initialization..."); 
     sample_cnt = 0;
     packet_cnt = 0;
-    transport.Initialize();   
+    const struct device* dev = DEVICE_DT_GET(DEVICE_NODE);
+    transport.Initialize(dev);   
     
     qmc5883l_is_on_i2c_bus_.store(false, std::memory_order_relaxed);
 

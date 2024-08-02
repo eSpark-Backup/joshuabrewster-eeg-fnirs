@@ -11,12 +11,13 @@
 #include "ble_service.hpp"
 #include "usb_comm_handler.hpp"
 
+#define DEVICE_NODE DT_NODELABEL(i2c1)
+
 LOG_MODULE_REGISTER(max30102, LOG_LEVEL_INF);
 
 Max30102::Max30102(UsbCommHandler &controller) : serialHandler(controller) {
     LOG_DBG("Max30102 Constructor!");
 }
-
 int Max30102::Initialize() {
 
     // int ret = 0;
@@ -25,7 +26,8 @@ int Max30102::Initialize() {
     
     LOG_DBG("Starting Max30102 Initialization..."); 
     packet_cnt = 0;
-    transport.Initialize();   
+    const struct device* dev = DEVICE_DT_GET(DEVICE_NODE);
+    transport.Initialize(dev);
     
     max30102_is_on_i2c_bus_.store(false, std::memory_order_relaxed);
 

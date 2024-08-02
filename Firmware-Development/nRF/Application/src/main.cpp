@@ -276,7 +276,7 @@ static int gpio_init(void) {
         return 0;
     }
     
-    if ((gpio_pin_configure_dt(&power_led, GPIO_OUTPUT_HIGH) < 0) || (gpio_pin_configure_dt(&debug_led, GPIO_OUTPUT_INACTIVE) < 0) || (gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_INACTIVE) < 0)) {
+    if ((gpio_pin_configure_dt(&power_led, GPIO_OUTPUT_HIGH) < 0) || (gpio_pin_configure_dt(&debug_led, GPIO_OUTPUT_LOW) < 0) || (gpio_pin_configure_dt(&error_led, GPIO_OUTPUT_LOW) < 0)) {
         return 0;
     }
 
@@ -689,13 +689,16 @@ void uart_poll_buffer(const struct device *dev, const uint8_t *data, size_t size
     }
 }
 
-static void setupPeripherals() {
-    
+static void setupPeripherals()
+{
     int ret = 0;
 
     gpio_init();
     configureGPIOport();
     ret = init_sensor_gpio_int();
+    if (ret == 0){
+        // LOG_INF("All GPIOs interrupts Int'd!");
+    }
 
     #if CONFIG_USE_ADS131M08    
         k_work_init(&interrupt_work_item, interrupt_workQueue_handler);
@@ -719,10 +722,6 @@ static void setupPeripherals() {
         k_work_init(&qmc5883l_interrupt_work_item, qmc5883l_interrupt_workQueue_handler);
     #endif
 
-        if (ret == 0){
-            //LOG_INF("GPIOs Int'd!");        
-        }
-
     #if CONFIG_USE_USB
         serial.Initialize();
         usbCommHandler.Initialize();
@@ -730,7 +729,10 @@ static void setupPeripherals() {
 
     #if CONFIG_USE_ADS131M08    
         adc.init(ADS_CS, DATA_READY_GPIO, ADS_RESET, 8000000); // cs_pin, drdy_pin, sync_rst_pin, 8MHz SPI bus
-        // adc_1.init(ADS_1_CS, DATA_READY_1_GPIO, ADS_1_RESET, 8000000); // cs_pin, drdy_pin, sync_rst_pin, 8MHz SPI bus
+   #endif
+
+    #if CONFIG_USE_ADS131M08_1
+        adc_1.init(ADS_1_CS, DATA_READY_1_GPIO, ADS_1_RESET, 8000000); // cs_pin, drdy_pin, sync_rst_pin, 8MHz SPI bus
     #endif
 
     #if CONFIG_USE_MAX30102
@@ -775,36 +777,36 @@ static void setupPeripherals() {
         }
     #endif
 
-    #if CONFIG_USE_I2S
-        ret = audio.Initialize();
-        LOG_DBG("audio.Initialize: %d", ret);
-    #endif
+    // #if CONFIG_USE_I2S
+    //     ret = audio.Initialize();
+    //     LOG_DBG("audio.Initialize: %d", ret);
+    // #endif
 
-    #if CONFIG_USE_DMIC
-        ret = dmic.Initialize();
-        LOG_DBG("dmic.Initialize: %d", ret);
-    #endif
+    // #if CONFIG_USE_DMIC
+    //     ret = dmic.Initialize();
+    //     LOG_DBG("dmic.Initialize: %d", ret);
+    // #endif
 
-    #if CONFIG_USE_TLC5940
-        ret = tlc.Initialize(0x000);
-        LOG_DBG("tlc.Initialize: %d", ret);
-    #endif
+    // #if CONFIG_USE_TLC5940
+    //     ret = tlc.Initialize(0x000);
+    //     LOG_DBG("tlc.Initialize: %d", ret);
+    // #endif
 
-    #if CONFIG_USE_MCU2MCU
-        init_uart();
-    #endif
+    // #if CONFIG_USE_MCU2MCU
+    //     init_uart();
+    // #endif
 
-    #if CONFIG_USE_ADS131M08
-        setupadc(&adc);
-        // setupadc(&adc_1);
-        init_ads131_gpio_int();
-    #endif
+    // #if CONFIG_USE_ADS131M08
+    //     setupadc(&adc);
+    //     // setupadc(&adc_1);
+    //     init_ads131_gpio_int();
+    // #endif
 
-    //need to time this correctly with the ADC if controlling LEDs on second MCU
-    #if CONFIG_USE_MCU2MCU    
-        uint8_t command[] = "ledNum=1,  Config=A\r\n";
-        uart_poll_buffer(uart_dev, command, sizeof(command));
-    #endif 
+    // //need to time this correctly with the ADC if controlling LEDs on second MCU
+    // #if CONFIG_USE_MCU2MCU    
+    //     uint8_t command[] = "ledNum=1,  Config=A\r\n";
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    // #endif 
 
 
     //uint8_t adcRawData[adc.nWordsInFrame * adc.nBytesInWord] = {0};       
@@ -892,7 +894,7 @@ int main(void)
     // os_mgmt_register_group();
     // img_mgmt_register_group();
 
-    // setupPeripherals(); //will setup interrupts etc
+    setupPeripherals(); //will setup interrupts etc
 
     Bluetooth::SetupBLE();
 

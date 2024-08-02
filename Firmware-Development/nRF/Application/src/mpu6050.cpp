@@ -11,6 +11,8 @@
 #include "ble_service.hpp"
 #include "usb_comm_handler.hpp"
 
+#define DEVICE_NODE DT_NODELABEL(i2c1)
+
 LOG_MODULE_REGISTER(mpu6050, LOG_LEVEL_INF);
 
 Mpu6050::Mpu6050(UsbCommHandler &controller) : serialHandler(controller) {
@@ -25,7 +27,8 @@ int Mpu6050::Initialize() {
     LOG_DBG("Starting Mpu6050 Initialization..."); 
     sample_cnt = 0;
     packet_cnt = 0;
-    transport.Initialize();   
+    const struct device* dev = DEVICE_DT_GET(DEVICE_NODE);
+    transport.Initialize(dev);
     
     mpu6050_is_on_i2c_bus_.store(false, std::memory_order_relaxed);
 

@@ -68,7 +68,9 @@ struct qmc5883l_config {
  */
 class Qmc5883l {
 
-    using I2C_1DeviceName = DeviceString<'I', '2', 'C', '_', '1'>;
+    // using I2C_1DeviceName = DeviceString<'I', '2', 'C', '_', '1'>;
+    using I2C_1DeviceName = DeviceString<'i', '2', 'c', '1'>;
+
     constexpr static uint8_t qmc5883l_id = 0xFF; // Part ID
     uint8_t tx_buf[250] = {};
 

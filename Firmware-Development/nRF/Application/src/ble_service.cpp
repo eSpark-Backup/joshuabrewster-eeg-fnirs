@@ -81,8 +81,8 @@ void OnClientConnected(bt_conn *connected, uint8_t err)
             int error = bt_gatt_exchange_mtu(activeConnection, &exchange_params);
 
             bt_conn_le_phy_param phy_param = BT_CONN_LE_PHY_PARAM_INIT(
-            BT_GAP_LE_PHY_2M,
-            BT_GAP_LE_PHY_2M
+                BT_GAP_LE_PHY_2M,
+                BT_GAP_LE_PHY_2M
             );
             error = bt_conn_le_phy_update(connected, &phy_param);
 

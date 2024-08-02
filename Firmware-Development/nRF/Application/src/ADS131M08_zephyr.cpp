@@ -78,7 +78,8 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
         spiConfig.slave = 0;
         spiConfig.cs = csConfig;
 
-        spiDevice = device_get_binding("SPI_0");
+        spiDevice = DEVICE_DT_GET(DT_NODELABEL(spi0));
+        // spiDevice = device_get_binding("spi0");
     }
 
     if (spiDevice == nullptr)

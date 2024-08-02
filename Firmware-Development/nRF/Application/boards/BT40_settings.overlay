@@ -7,7 +7,7 @@
     compatible = "nordic,nrf5340-dk-nrf5340-cpuapp";
     
 	chosen {
-		 zephyr,console = &uart2;
+		//  zephyr,console = &uart0;
          zephyr,sram = &sram0_image;
          zephyr,flash = &flash0;
          zephyr,code-partition = &slot0_partition;
@@ -16,11 +16,15 @@
 	};
 
 	aliases {
-		errorled = &led0;
-		powerled = &led1;
-		debugled = &led2;
+		errorled = &led2;
+		powerled = &led3;
+		debugled = &led1;
 		uart2 = &uart2;
 		uart3 = &uart3;
+		spi0 = &spi0;
+		i2c1 = &i2c1;
+		i2c1max = &max30102;
+		i2c1bme = &bme280;
 	};
 
 	buttons {
@@ -41,22 +45,22 @@
 		
 	leds {
 		compatible = "gpio-leds";
-		led0: led_0 {
+		led1: led_1 {
+			gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+			label = "blue_LED";
+		};
+		led2: led_2 {
 			gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
 			label = "red_LED";
 		};
-		led1: led_1 {
+		led3: led_3 {
 			gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
 			label = "green_LED";
-		};
-		led2: led_2 {
-			gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
-			label = "blue_LED";
 		};
 	};
 };
 
-&led3 {
+&led0 {
 	status = "disabled";
 };
 	
@@ -126,15 +130,15 @@
    status = "okay";
    pinctrl-0 = <&i2c1_default>;
    pinctrl-1 = <&i2c1_sleep>;
-   // sda-pin = <34>;
-   // scl-pin = <35>;
+	// label = "name_label";
+	// sda-pin = <34>;
+	// scl-pin = <35>;
    
    max30102: max30102@57 {
 	   compatible = "maxim,max30102";
-       label = "MAX30102";
+    //    label = "MAX30102";
        reg = <0x57>;
        mode = <2>;
-	//    interrupts = ;
        status = "okay";
 	};
 	
