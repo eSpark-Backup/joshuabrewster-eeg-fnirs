@@ -17,9 +17,9 @@ If you are on a platform other than Windows, please refer to the official Raspbe
 2. **Install the Executable:**
    - Run the downloaded executable installer.
    - Follow on-screen instructions, ensuring to select "Clone and build example in this folder" before clicking "Finish."
-   - ![image](https://github.com/eSpark-Consultants/joshuabrewster-eeg-fnirs/assets/106241042/35fcb878-1198-477c-b8c5-43fe0e929dbf)
+   - ![image](https://i.imgur.com/ddJbKNg.png)
    - If you see this output then everything is installed properly.
-   - ![image](https://github.com/eSpark-Consultants/joshuabrewster-eeg-fnirs/assets/106241042/0d024d45-054c-4ad3-a359-dc23ff465572)
+   - ![image](https://i.imgur.com/SSjUpyQ.png)
 
 
 3. **Open Project in Visual Studio Code:**
@@ -30,7 +30,7 @@ If you are on a platform other than Windows, please refer to the official Raspbe
    - If not already installed, install the CMake extension.
    - Navigate to the CMake extension in Visual Studio Code.
    - Configure GCC 10.3.1 ARM-none-eabi compiler.
-   - ![image](https://github.com/eSpark-Consultants/joshuabrewster-eeg-fnirs/assets/106241042/040aa6c9-953b-4a6e-9b0e-288f600c5be4)
+   - ![image](https://i.imgur.com/IxmM66O.png)
 
 
 ## Troubleshooting

@@ -7,6 +7,10 @@
 // For registering callback
 #include "ble_service.hpp"
 
+#define DEVICE_NODE DT_NODELABEL(i2s_rxtx)
+// #define DEVICE_NODE DT_ALIAS(i2srxtx)
+// #define DEVICE_NODE DT_CHILD(DT_NODELABEL(i2s0), i2s_rxtx)
+
 /** Register log module */
 LOG_MODULE_REGISTER(i2s, LOG_LEVEL_INF);
 
@@ -26,7 +30,7 @@ int AudioModule::Initialize() {
 
     LOG_DBG("Starting AudioModule Initialization...");
 
-    i2s_dev = DEVICE_DT_GET(DT_NODELABEL(i2s_rxtx));
+    i2s_dev = DEVICE_DT_GET(DEVICE_NODE);
     if (!device_is_ready(i2s_dev)) {
         LOG_ERR("%s is not ready\n", i2s_dev->name);
         return -1;

@@ -1,0 +1,6 @@
+
+description: MAX30102 heart rate sensor
+
+compatible: "joshua,max30102"
+
+include: [sensor-device.yaml, i2c-device.yaml]

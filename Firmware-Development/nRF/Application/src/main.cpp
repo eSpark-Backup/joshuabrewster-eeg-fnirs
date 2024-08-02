@@ -777,39 +777,39 @@ static void setupPeripherals()
         }
     #endif
 
-    // #if CONFIG_USE_I2S
-    //     ret = audio.Initialize();
-    //     LOG_DBG("audio.Initialize: %d", ret);
-    // #endif
+    #if CONFIG_USE_I2S
+        ret = audio.Initialize();
+        LOG_DBG("audio.Initialize: %d", ret);
+    #endif
 
-    // #if CONFIG_USE_DMIC
-    //     ret = dmic.Initialize();
-    //     LOG_DBG("dmic.Initialize: %d", ret);
-    // #endif
+    #if CONFIG_USE_DMIC
+        ret = dmic.Initialize();
+        LOG_DBG("dmic.Initialize: %d", ret);
+    #endif
 
-    // #if CONFIG_USE_TLC5940
-    //     ret = tlc.Initialize(0x000);
-    //     LOG_DBG("tlc.Initialize: %d", ret);
-    // #endif
+    #if CONFIG_USE_TLC5940
+        ret = tlc.Initialize(0x000);
+        LOG_DBG("tlc.Initialize: %d", ret);
+    #endif
 
-    // #if CONFIG_USE_MCU2MCU
-    //     init_uart();
-    // #endif
+    #if CONFIG_USE_MCU2MCU
+        init_uart();
+    #endif
 
-    // #if CONFIG_USE_ADS131M08
-    //     setupadc(&adc);
-    //     // setupadc(&adc_1);
-    //     init_ads131_gpio_int();
-    // #endif
+    #if CONFIG_USE_ADS131M08
+        setupadc(&adc);
+        // setupadc(&adc_1);
+        init_ads131_gpio_int();
+    #endif
 
-    // //need to time this correctly with the ADC if controlling LEDs on second MCU
-    // #if CONFIG_USE_MCU2MCU    
-    //     uint8_t command[] = "ledNum=1,  Config=A\r\n";
-    //     uart_poll_buffer(uart_dev, command, sizeof(command));
-    // #endif 
+    //need to time this correctly with the ADC if controlling LEDs on second MCU
+    #if CONFIG_USE_MCU2MCU    
+        uint8_t command[] = "ledNum=1,  Config=A\r\n";
+        uart_poll_buffer(uart_dev, command, sizeof(command));
+    #endif 
 
 
-    //uint8_t adcRawData[adc.nWordsInFrame * adc.nBytesInWord] = {0};       
+    // uint8_t adcRawData[adc.nWordsInFrame * adc.nBytesInWord] = {0};       
 
 }
 

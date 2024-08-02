@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20.0)
 
 # set(DTC_OVERLAY_FILE "nrf5340dk_nrf5340.overlay")
+set(DTS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/dts")
 
 # Get the parent directory of ZEPHYR_BASE
 # get_filename_component(PARENT_DIR ${ZEPHYR_BASE} DIRECTORY)

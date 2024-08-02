@@ -24,7 +24,8 @@
 		spi0 = &spi0;
 		i2c1 = &i2c1;
 		i2c1max = &max30102;
-		i2c1bme = &bme280;
+		// i2c1bme = &bme280;
+		i2srxtx = &i2s_rxtx;
 	};
 
 	buttons {
@@ -111,14 +112,22 @@
 	
 	ads131m08: ads131m08@0 {
 		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		spi-max-frequency = <DT_FREQ_M(8)>;
+		compatible = "joshua,ads131m08";
 		reg = <0>;
-		label = "ADS131M08_0";
+		// label = "ADS131M08_0";
 	};
-
+	
 	ads131m08_0: ads131m08@1 {
 		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		spi-max-frequency = <DT_FREQ_M(8)>;
+		compatible = "joshua,ads131m08";
 		reg = <1>;
-		label = "ADS131M08_1";
+		// label = "ADS131M08_1";
 	};
 };
 
@@ -135,10 +144,10 @@
 	// scl-pin = <35>;
    
    max30102: max30102@57 {
-	   compatible = "maxim,max30102";
+	   compatible = "joshua,max30102";
     //    label = "MAX30102";
        reg = <0x57>;
-       mode = <2>;
+    //    mode = <2>;
        status = "okay";
 	};
 	
@@ -152,13 +161,20 @@
 };
 
 i2s_rxtx: &i2s0 {
+// &i2s0 {
     status = "okay";
 	pinctrl-0 = <&i2s_default>;
-    // sck-pin =   <43>; 
-    // lrck-pin =  <8>; 
-    // sdout-pin = <44>;
-    // sdin-pin =  <46>; 
+    // // sck-pin =   <43>; 
+    // // lrck-pin =  <8>; 
+    // // sdout-pin = <44>;
+    // // sdin-pin =  <46>; 
     clock-source = "ACLK";
+	
+	// i2s_rxtx: i2s_rxtx@0 {
+	// 	status = "okay";
+		// compatible = "joshua,audiomodule";
+		// reg = <0x0>;
+	// };
 };
 
 dmic_dev: &pdm0 {
@@ -351,4 +367,3 @@ dmic_dev: &pdm0 {
 		};
 	};
 };
-
