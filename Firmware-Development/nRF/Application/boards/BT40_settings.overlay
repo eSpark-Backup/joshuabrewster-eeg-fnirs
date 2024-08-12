@@ -1,31 +1,23 @@
-//  /dts-v1/;
-//  #include <nordic/nrf5340_cpuapp_qkaa.dtsi>
-//  #include "nrf5340_cpuapp_common.dtsi"
+// To get started, press Ctrl+Space to bring up the completion menu and view the available nodes.
+// For more help, browse the DeviceTree documentation at https: //docs.zephyrproject.org/latest/guides/dts/index.html
+
+//NOTE gpio 1.xx are formatted as 32 + xx; e.g. 1.00 is 32, 1.10 is 42
 
 / {
-	model = "Nordic NRF5340 DK NRF5340 Application";
-    compatible = "nordic,nrf5340-dk-nrf5340-cpuapp";
     
 	chosen {
 		//  zephyr,console = &uart0;
-         zephyr,sram = &sram0_image;
-         zephyr,flash = &flash0;
-         zephyr,code-partition = &slot0_partition;
-         zephyr,sram-secure-partition = &sram0_s;
-         zephyr,sram-non-secure-partition = &sram0_ns;
 	};
 
 	aliases {
 		errorled = &led2;
 		powerled = &led3;
 		debugled = &led1;
-		uart2 = &uart2;
-		uart3 = &uart3;
-		spi0 = &spi0;
-		i2c1 = &i2c1;
-		i2c1max = &max30102;
-		// i2c1bme = &bme280;
-		i2srxtx = &i2s_rxtx;
+		ads0 = &ads131m08_0;
+		ads1 = &ads131m08_1;
+		max = &max30102;
+		bme = &bme280;
+		// i2srxtx = &i2s_rxtx;
 	};
 
 	buttons {
@@ -110,21 +102,25 @@
 	// miso-pin = <20>; //DOUT
 	// mosi-pin = <29>; //DIN
 	
-	ads131m08: ads131m08@0 {
+	ads131m08_0: ads131m08@0 {
 		status = "okay";
-		#address-cells = <1>;
-		#size-cells = <0>;
+		// #address-cells = <1>;
+		// #size-cells = <0>;
 		spi-max-frequency = <DT_FREQ_M(8)>;
+		drdy-gpios = <&gpio0 15  GPIO_PULL_UP>;				// Data Ready gpio
+		sync-gpios = <&gpio0 12  GPIO_ACTIVE_HIGH>;			// ADC Reset gpio
 		compatible = "joshua,ads131m08";
 		reg = <0>;
 		// label = "ADS131M08_0";
 	};
 	
-	ads131m08_0: ads131m08@1 {
+	ads131m08_1: ads131m08@1 {
 		status = "okay";
-		#address-cells = <1>;
-		#size-cells = <0>;
+		// #address-cells = <1>;
+		// #size-cells = <0>;
 		spi-max-frequency = <DT_FREQ_M(8)>;
+		// drdy-gpios = <&gpio0 11  GPIO_PULL_UP>;				// Data Ready gpio
+		// sync-gpios = <&gpio0 9  GPIO_ACTIVE_HIGH>;			// ADC Reset gpio
 		compatible = "joshua,ads131m08";
 		reg = <1>;
 		// label = "ADS131M08_1";
@@ -144,11 +140,11 @@
 	// scl-pin = <35>;
    
    max30102: max30102@57 {
-	   compatible = "joshua,max30102";
-    //    label = "MAX30102";
-       reg = <0x57>;
-    //    mode = <2>;
        status = "okay";
+	   compatible = "joshua,max30102";
+       reg = <0x57>;
+	   //    mode = <2>;
+	   //    label = "MAX30102";
 	};
 	
 	bme280: bme280@76 {
@@ -190,27 +186,16 @@ dmic_dev: &pdm0 {
         compatible = "zephyr,cdc-acm-uart";
         // label = "CDC_ACM_0";			// Deprecated
     };
+	status = "okay";
 };
 
 &clock {
     hfclkaudio-frequency = <11289600>;
 };
-
-&usbreg {
-     status = "disabled";
-};
-	
-&qspi {
-	status = "disabled";
-};
  
 &ieee802154 {
 	status = "disabled";
 };
- 
-// &mbox {
-// 	status = "disabled";
-// };
  
 &mutex {
 	status = "disabled";
@@ -247,35 +232,11 @@ dmic_dev: &pdm0 {
 
 &gpio0 {
 	status = "okay";
-	label = "GPIO_0";
 };
 
 &gpio1 {
 	status = "okay";
-	label = "GPIO_1";
 };
-
-// gpio0: gpio@842500 {
-// 	compatible = "nordic,nrf-gpio";
-// 	gpio-controller;
-// 	reg = <0x842500 0x300>;
-// 	#gpio-cells = <2>;
-// 	label = "GPIO_0";
-// 	status = "disabled";
-// 	port = <0>;
-// };
-
-// gpio1: gpio@842800 {
-// 	compatible = "nordic,nrf-gpio";
-// 	gpio-controller;
-// 	reg = <0x842800 0x300>;
-// 	#gpio-cells = <2>;
-// 	ngpios = <16>;
-// 	label = "GPIO_1";
-// 	status = "disabled";
-// 	port = <1>;
-// };
-
 
 //-------------------------------------------------------------------
 &pinctrl {
@@ -367,3 +328,4 @@ dmic_dev: &pdm0 {
 		};
 	};
 };
+

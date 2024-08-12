@@ -10,6 +10,8 @@
 
 #include "ADS131M08_zephyr.hpp"
 
+#define DEVICE_NODE DT_BUS(DT_NODELABEL(ads131m08_0))
+
 LOG_MODULE_REGISTER(ads131m08, LOG_LEVEL_INF);
 
 ADS131M08::ADS131M08() {
@@ -19,7 +21,7 @@ ADS131M08::ADS131M08() {
     // SpiClk = clk;
 }
 
-void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uint32_t spi_frequency) {
+void ADS131M08::init(device dev_name, uint8_t drdy_pin, uint8_t sync_rst_pin, uint32_t spi_frequency) {
 
     LOG_DBG("Starting ADS131M08 Initialization...");
     int ret = 0;
@@ -27,13 +29,14 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
 /* Configure DRDY and SYNC/RESET GPIOs */
     uint8_t SYNCRST;
     if(sync_rst_pin >= 100) {
-        gpioDevice = device_get_binding("GPIO_1");
+        DT_PROP()
+        gpioDevice = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         SYNCRST = sync_rst_pin - 100;
     } else if(sync_rst_pin >= 32) {
-        gpioDevice = device_get_binding("GPIO_1");
+        gpioDevice = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         SYNCRST = sync_rst_pin - 32;
     } else {
-        gpioDevice = device_get_binding("GPIO_0");
+        gpioDevice = DEVICE_DT_GET(DT_NODELABEL(gpio0));
         SYNCRST = sync_rst_pin;
     }
     if(gpioDevice == nullptr){
@@ -42,8 +45,8 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
     }
 
     ret = gpio_pin_configure(gpioDevice, SYNCRST, GPIO_OUTPUT_ACTIVE); // Set SYNC/RESET pin to HIGH
-    //ret += gpio_pin_configure(gpioDevice, drdy_pin, GPIO_INPUT | GPIO_PULL_UP);
-    //ret += gpio_pin_interrupt_configure(gpioDevice, drdy_pin, GPIO_INT_EDGE_FALLING);
+    // ret += gpio_pin_configure(gpioDevice, drdy_pin, GPIO_INPUT | GPIO_PULL_UP);
+    // ret += gpio_pin_interrupt_configure(gpioDevice, drdy_pin, GPIO_INT_EDGE_FALLING);
     //gpio_init_callback(&callback, ads131m08_drdy_cb, BIT(drdy_pin));    
     //ret += gpio_add_callback(gpioDevice, &callback);
     if (ret != 0){
@@ -57,13 +60,13 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
     // Try to bind chip select device
 
     if(cs_pin >= 100) {
-        csConfig.gpio.port = device_get_binding("GPIO_1");
+        csConfig.gpio.port = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         csConfig.gpio.pin = cs_pin - 100;
     } else if(cs_pin >= 32) {
-        csConfig.gpio.port = device_get_binding("GPIO_1");
+        csConfig.gpio.port = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         csConfig.gpio.pin = cs_pin - 32;
     } else {
-        csConfig.gpio.port = device_get_binding("GPIO_0");
+        csConfig.gpio.port = DEVICE_DT_GET(DT_NODELABEL(gpio0));
         csConfig.gpio.pin = cs_pin;
     }
 
@@ -78,7 +81,7 @@ void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uin
         spiConfig.slave = 0;
         spiConfig.cs = csConfig;
 
-        spiDevice = DEVICE_DT_GET(DT_NODELABEL(spi0));
+        spiDevice = DEVICE_DT_GET(DEVICE_NODE);
         // spiDevice = device_get_binding("spi0");
     }
 

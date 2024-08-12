@@ -80,21 +80,21 @@ void SerialController::Initialize()
 
     k_msgq_init(&messageQueue, static_cast<char *>(static_cast<void *>(buffer)), sizeof(SerialTransfer *), MaxEntryCount);
 
-    // Start working thread
-    k_thread_create(&worker, my_stack_area, K_THREAD_STACK_SIZEOF(my_stack_area),
-                    &SerialController::WorkingThread, this, nullptr, nullptr, serialPortTaskPriority, 0, K_NO_WAIT);
-
 	dev = DEVICE_DT_GET_ONE(zephyr_cdc_acm_uart);
 	if (!device_is_ready(dev)) {
 		LOG_ERR("CDC ACM device not ready");
 		return;
 	}
 
-	// ret = usb_enable(NULL);
-	// if (ret != 0) {
-	// 	LOG_ERR("Failed to enable USB");
-	// 	return;
-	// }
+    // Start working thread
+    k_thread_create(&worker, my_stack_area, K_THREAD_STACK_SIZEOF(my_stack_area),
+                    &SerialController::WorkingThread, this, nullptr, nullptr, serialPortTaskPriority, 0, K_NO_WAIT);
+
+	ret = usb_enable(NULL);
+	if (ret != 0) {
+		LOG_ERR("Failed to enable USB");
+		return;
+	}
 }
 
 /**

@@ -11,7 +11,7 @@
 #include "ble_service.hpp"
 #include "usb_comm_handler.hpp"
 
-#define DEVICE_NODE DT_NODELABEL(i2c1)
+#define DEVICE_NODE DT_BUS(DT_NODELABEL(max30102))
 
 LOG_MODULE_REGISTER(max30102, LOG_LEVEL_INF);
 
