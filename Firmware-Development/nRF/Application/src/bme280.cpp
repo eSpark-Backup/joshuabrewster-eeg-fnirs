@@ -81,6 +81,7 @@ void Bme280::GetChipId(const struct device *dev){
 }
 const struct device * Bme280::get_bme280_device(void){
 	
+    // const struct device *dev = DEVICE_DT_GET(DT_BUS(DT_NODELABEL(bme280)));
     const struct device *dev = DEVICE_DT_GET_ANY(bosch_bme280);
 
 	if (dev == nullptr) {

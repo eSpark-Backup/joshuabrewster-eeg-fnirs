@@ -6,6 +6,8 @@
 // For registering callback
 #include "ble_service.hpp"
 
+#define DEVICE_NODE DT_NODELABEL(dmicdev)
+
 /** Register log module */
 LOG_MODULE_REGISTER(dmic, LOG_LEVEL_INF);
 
@@ -24,7 +26,7 @@ DmicModule::DmicModule() {
 int DmicModule::Initialize() {
 
     LOG_DBG("Starting DmicModule Initialization...");
-    dmic_dev = DEVICE_DT_GET(DT_NODELABEL(dmic_dev));
+    dmic_dev = DEVICE_DT_GET(DEVICE_NODE);
 	
     if (!device_is_ready(dmic_dev)) {
 		LOG_ERR("%s is not ready", dmic_dev->name);

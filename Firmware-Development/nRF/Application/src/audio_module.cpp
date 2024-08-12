@@ -7,9 +7,7 @@
 // For registering callback
 #include "ble_service.hpp"
 
-#define DEVICE_NODE DT_NODELABEL(i2s_rxtx)
-// #define DEVICE_NODE DT_ALIAS(i2srxtx)
-// #define DEVICE_NODE DT_CHILD(DT_NODELABEL(i2s0), i2s_rxtx)
+#define DEVICE_NODE DT_BUS(DT_NODELABEL(i2s_rxtx))
 
 /** Register log module */
 LOG_MODULE_REGISTER(i2s, LOG_LEVEL_INF);

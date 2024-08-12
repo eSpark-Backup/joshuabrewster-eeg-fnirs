@@ -21,7 +21,7 @@ ADS131M08::ADS131M08() {
     // SpiClk = clk;
 }
 
-void ADS131M08::init(device dev_name, uint8_t drdy_pin, uint8_t sync_rst_pin, uint32_t spi_frequency) {
+void ADS131M08::init(uint8_t cs_pin, uint8_t drdy_pin, uint8_t sync_rst_pin, uint32_t spi_frequency) {
 
     LOG_DBG("Starting ADS131M08 Initialization...");
     int ret = 0;
@@ -29,7 +29,6 @@ void ADS131M08::init(device dev_name, uint8_t drdy_pin, uint8_t sync_rst_pin, ui
 /* Configure DRDY and SYNC/RESET GPIOs */
     uint8_t SYNCRST;
     if(sync_rst_pin >= 100) {
-        DT_PROP()
         gpioDevice = DEVICE_DT_GET(DT_NODELABEL(gpio1));
         SYNCRST = sync_rst_pin - 100;
     } else if(sync_rst_pin >= 32) {
