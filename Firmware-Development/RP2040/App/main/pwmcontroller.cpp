@@ -1,89 +1,86 @@
 #include "pwmcontroller.hpp"
 #include "hardware/pwm.h"
 
-PWMController::PWMController(uint8_t pwmPin, uint8_t ledNumber) : _pwmPin(pwmPin), _ledNumber(ledNumber) 
+// Constructor
+PWMController::PWMController(uint8_t pwmPin, uint32_t clockFrequency, float clockDiv)
+    : _pwmPin(pwmPin), _clockFrequency(clockFrequency), _clockDiv(clockDiv)
 {
-    init();
+    // Initialize the PWM configuration
+    init(_clockFrequency, _clockDiv);
 }
 
-void PWMController::init() 
+// Initialization method
+void PWMController::init(uint32_t clockFrequency, float clockDiv) 
 {
+    // Store the clock divider as a class variable
+    _clockDiv = clockDiv;
+
+    // Set the function of the GPIO pin to PWM
     gpio_set_function(_pwmPin, GPIO_FUNC_PWM);
 
-    // Find out which PWM slice is connected to the PWM pin
+    // Get the PWM slice number associated with the GPIO pin
     _sliceNum = pwm_gpio_to_slice_num(_pwmPin);
 
+    // Get the PWM channel associated with the GPIO pin
+    _channel = pwm_gpio_to_channel(_pwmPin);
+
+    // Get the default PWM configuration
     pwm_config config = pwm_get_default_config();
-    // Set divider, reduces counter clock to sysclock/this value
-    pwm_config_set_clkdiv(&config, PWM_CLOCK_DIVIDER);
-    // Load the configuration into our PWM slice, and set it running.
+    
+    // Set the clock divider as needed
+    pwm_config_set_clkdiv(&config, _clockDiv);
+    
+    // Initialize the PWM slice with the configuration but do not start it yet
     pwm_init(_sliceNum, &config, false);
 }
 
+void PWMController::updateTiming(uint32_t periodUs, uint32_t pulseWidthUs, uint32_t startUs) 
+{
+    // Calculate the wrap value based on the system clock frequency, clock divider, and the desired period
+    _wrapValue = (uint16_t)((_clockFrequency / (_clockDiv * 1000000.0f)) * periodUs);
+
+    // Calculate the level based on the pulse width (duration for which the signal is high) in clock cycles
+    uint16_t level = (uint16_t)((_wrapValue * pulseWidthUs) / periodUs);
+
+    // Enable phase-correct mode on this PWM slice
+    //pwm_set_phase_correct(_sliceNum, true);
+
+    // Set the PWM wrap value to control the period
+    pwm_set_wrap(_sliceNum, _wrapValue);
+
+    // Set the PWM duty cycle based on the level calculated
+    pwm_set_chan_level(_sliceNum, _channel, level);
+
+    // Optionally adjust the counter to start at a specific phase within the wrap range, if needed
+    if (startUs > 0) {
+        uint16_t startCount = (uint16_t)((_wrapValue * startUs) / periodUs);
+        if (startCount >= _wrapValue) startCount = _wrapValue - 1;  // Cap startCount to prevent overflow
+        pwm_set_counter(_sliceNum, startCount);
+    }
+
+    // Debugging information
+    // printf("Pin: %d, Wrap: %d, Level: %d, Pulse Width: %d us, Start Count: %d, Clock Div: %.2f\n", 
+    //        _pwmPin, _wrapValue, level, pulseWidthUs, startCount, _clockDiv);
+}
+
+// Start PWM output
 void PWMController::start() 
 {
     pwm_set_enabled(_sliceNum, true);
 }
 
+// Stop PWM output
 void PWMController::stop() 
 {
     pwm_set_enabled(_sliceNum, false);
 }
 
-void PWMController::updateWrapValue(char configChar) 
+// Destructor
+PWMController::~PWMController() 
 {
-    uint32_t onTimeUs = 0;
-    uint32_t risingEdgeDuration = 0;
+    // Disable the PWM signal on the specified slice
+    pwm_set_enabled(_sliceNum, false);
 
-    switch (configChar) 
-    {
-        case 'A':
-            _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_A;
-            onTimeUs = ((1.f / ADC_SPS_A) * PWM_DUTY_CYCLE) * 1000000;
-            risingEdgeDuration = DELAY_BETWEEN_PULSES_US * 4;
-            _pulseDelay = onTimeUs + risingEdgeDuration;
-            break;
-        case 'B':
-            _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_B;
-            onTimeUs = ((1.f / ADC_SPS_B) * PWM_DUTY_CYCLE) * 1000000;
-            risingEdgeDuration = DELAY_BETWEEN_PULSES_US * 3;
-            _pulseDelay = onTimeUs + risingEdgeDuration;
-            break;
-        case 'C':
-            _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_C;
-            onTimeUs = ((1.f / ADC_SPS_C) * PWM_DUTY_CYCLE) * 1000000;
-            risingEdgeDuration = DELAY_BETWEEN_PULSES_US * 2;
-            _pulseDelay = onTimeUs + risingEdgeDuration;
-            break;
-        case 'D':
-            _wrapValue = (RPI_PICO_CLOCK_FREQUENCY / PWM_CLOCK_DIVIDER) / ADC_SPS_D;
-            onTimeUs = ((1.f / ADC_SPS_D) * PWM_DUTY_CYCLE) * 1000000;
-            risingEdgeDuration = DELAY_BETWEEN_PULSES_US;
-            _pulseDelay = onTimeUs + risingEdgeDuration;
-            break;
-        default:
-            // No match found
-            break;
-    }
-
-}
-
-void PWMController::setPWMValues(void) 
-{
-    pwm_set_wrap(_sliceNum, _wrapValue);
-    pwm_set_gpio_level(_pwmPin, _wrapValue * PWM_DUTY_CYCLE);
-}
-
-uint8_t PWMController::getLedNumber(void)
-{
-    return _ledNumber;
-}
-
-uint64_t PWMController::getPulseDelay(void)
-{
-    return _pulseDelay;
-}
-
-PWMController::~PWMController() {
-    // Cleanup if needed
+    // Optionally, reset the GPIO function to its default state if needed
+    gpio_set_function(_pwmPin, GPIO_FUNC_SIO);  // Set to SIO (default state)
 }

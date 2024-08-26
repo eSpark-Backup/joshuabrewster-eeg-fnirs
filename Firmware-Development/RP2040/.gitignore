@@ -1,1 +1,7 @@
 build/
+binaries/
+CMakeFiles/
+.vscode/
+pico-sdk/
+
+.vcxproj

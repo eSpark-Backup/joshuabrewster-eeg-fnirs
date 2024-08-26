@@ -54,6 +54,9 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
-    }
+        "typeinfo": "cpp",
+        "zcbor_common.h": "c",
+        "smp.h": "c"
+    },
+    "C_Cpp.dimInactiveRegions": true
 }
