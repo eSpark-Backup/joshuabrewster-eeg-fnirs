@@ -5,11 +5,6 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/printk.h>
-// #include <zephyr/mgmt/mcumgr/grp/os_mgmt/os_mgmt.h>      // for OTA update
-// #include <zephyr/mgmt/mcumgr/grp/img_mgmt/img_mgmt.h>      // for OTA update
-// Needed for OTA
-// #include "zephyr/os_mgmt/os_mgmt.h"
-// #include "zephyr/img_mgmt/img_mgmt.h"
 
 #include "ble_service.hpp"
 #include "ADS131M08_zephyr.hpp"
@@ -808,9 +803,13 @@ int main(void)
 {
     LOG_INF("Entry point");
 
-    // Needed for OTA
-    // os_mgmt_register_group();
-    // img_mgmt_register_group();
+    /* Needed for OTA 
+    Auto done at startup by anabling CONFIG_NCS_SAMPLE_MCUMGR_BT_OTA_DFU=y
+    https://devzone.nordicsemi.com/f/nordic-q-a/99110/mcuboot-without-partition-manager
+    https://devzone.nordicsemi.com/f/nordic-q-a/99052/undefined-reference-to-os-and-img-_mgmt_register_group-while-trying-to-add-dfu-to-peripheral_lbs-sample 
+    os_mgmt_register_group(); 
+    img_mgmt_register_group(); 
+    */
 
     setupPeripherals(); //will setup interrupts etc
 
@@ -833,5 +832,54 @@ int main(void)
     // //LOG_INF("1...");
     // k_msleep(1000);
     
+    // while(1){
+    //     #if 0        
+    //         bool drdy = getGPIO(DATA_READY_GPIO);
+
+    //         if(drdy) {
+    //             adc.readAllChannels(adcRawData);
+
+    //             sampleNum++;
+    //             //LOG_INF("Sample: %d", sampleNum);
+    //             if (sampleNum == 100){
+    //                 LOG_INF("ADC[0]: %d", ((adcRawData[3] << 16) | (adcRawData[4] << 8) | adcRawData[5]));
+    //             }
+    //         }      
+    //     #endif
+    //     LOG_INF("Hi");
+    //     k_msleep(10000);
+    // }
+
+    // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    // while (1)
+    // {      
+    //     configureSPS(&adc, SPS_250_OSR);
+    //     uint8_t command[] = "ledNum=1,  Config=A\r\n";
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    //     k_msleep(10000);
+
+    //     configureSPS(&adc, SPS_500_OSR);
+    //     sprintf((char*)command, "ledNum=1,  Config=B\r\n");
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    //     k_msleep(10000);
+
+    //     configureSPS(&adc, SPS_1000_OSR);
+    //     sprintf((char*)command, "ledNum=1,  Config=C\r\n");
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    //     // uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    //     k_msleep(10000);
+
+    //     configureSPS(&adc, SPS_2000_OSR);
+    //     sprintf((char*)command, "ledNum=1,  Config=D\r\n");
+    //     uart_poll_buffer(uart_dev, command, sizeof(command));
+    //     uart_tx(uart_dev, command, sizeof(command), SYS_FOREVER_MS);
+    //     k_msleep(10000);
+    // }
+
     return 0;
 }
+
+
+
